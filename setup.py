@@ -12,6 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/christopherburke/tess-point",
+    download_url = 'https://github.com/christopherburke/tess-point/archive/v0.1.tar.gz',
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
