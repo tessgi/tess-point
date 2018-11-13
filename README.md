@@ -22,12 +22,7 @@ python tess_stars2px.py -t 261136679
 python tess_stars2px.py -f *target_list*
 
 ### AUTHORS
-Original programming in C and focal plane geometry solutions 
-    by Alan Levine (MIT)
- This python translation by Christopher J. Burke (MIT)
- Testing and focal plane geometry refinements by Michael Fausnaugh & 
-         Roland Vanderspek (MIT)
- Testing by Thomas Barclay (NASA Goddard)
+Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard)
 
 ### VERSION: 0.1
 
