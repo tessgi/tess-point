@@ -6,24 +6,25 @@ Convert target coordinates given in Right Ascension and Declination to TESS dete
 ### Install
 pip install tess-point
 
-Alternatively, the python module is a single file, tess_stars2px.py, so one can download tess_stars2px.py from github and use it in a local directory.
 
 ### Examples
 - Display command line arguments and features
 
-`python tess_stars2px.py -h`
+`python -m tess_stars2px -h`
 
 - Return pixel coordinates for Pi Mensae ra and dec in degrees
 
-`python tess_stars2px.py -c 84.291188 -80.469119`
+`python -m tess_stars2px -c 84.291188 -80.469119`
 
 - Return pixel coordinates for target by TIC ID (must be online)
 
-`python tess_stars2px.py -t 261136679`
+`python -m tess_stars2px -t 261136679`
 
 - Multi-target pixel coordinates results.  List the target TIC ID or other integer identifier [can be zero]; ra [deg]; dec [deg] in a whitespace delimited text file.  Process the target list.
 
-`python tess_stars2px.py -f <target_list>`
+`python -m tess_stars2px -f <target_list>`
+
+Alternatively, the python module is a single file, tess_stars2px.py, so one can avoid pip install.  Just download tess_stars2px.py from github and use it in a local directory.  The above commands would then be python tess_starspx.py -t 261136679
 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard)
