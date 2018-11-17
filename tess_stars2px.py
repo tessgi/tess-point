@@ -16,7 +16,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Roland Vanderspek (MIT)
  Testing by Thomas Barclay (NASA Goddard)
 
-VERSION: 0.1
+VERSION: 0.1.1
 
 NOTES:
     -Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic
@@ -473,7 +473,7 @@ class Levine_FPG():
     def star_in_fov(self, lng, lat):
         deg2rad = np.pi / 180.0
         inView = False
-        if lat > 73.0:
+        if lat > 70.0:
             vec0, vec1, vec2 = self.sphereToCart(lng, lat)
             vec = np.array([vec0, vec1, vec2], dtype=np.double)
             norm = np.sqrt(np.sum(vec*vec))
@@ -576,12 +576,13 @@ class Levine_FPG():
             ra and dec to pixel coords mapping
         """
         nStar = len(ras)
-        inCamera = np.zeros((nStar,), dtype=np.int)
-        ccdNum = np.zeros((nStar,), dtype=np.int)
-        fitsxpos = np.zeros((nStar,), dtype=np.double)
-        fitsypos = np.zeros((nStar,), dtype=np.double)
-        ccdxpos = np.zeros((nStar,), dtype=np.double)
-        ccdypos = np.zeros((nStar,), dtype=np.double)
+        inCamera = np.array([], dtype=np.int)
+        ccdNum = np.array([], dtype=np.int)
+        fitsxpos = np.array([], dtype=np.double)
+        fitsypos = np.array([], dtype=np.double)
+        ccdxpos = np.array([], dtype=np.double)
+        ccdypos = np.array([], dtype=np.double)
+        
         deg2rad = np.pi / 180.0
         if self.havePointing == True:
             # Convert ra and dec spherical coords to cartesian
@@ -601,12 +602,13 @@ class Levine_FPG():
                         xyfp = self.optics_fp(j, lng, lat)
                         # Convert mm to pixels
                         iccd, ccdpx, fitpx = self.mm_to_pix(j, xyfp)
-                        inCamera[i] = j+1 # Als code is base 0 convert to base 1
-                        ccdNum[i] = iccd+1 # ""
-                        fitsxpos[i] = fitpx[0]
-                        fitsypos[i] = fitpx[1]
-                        ccdxpos[i] = ccdpx[0]
-                        ccdypos[i] = ccdpx[1]
+                        inCamera = np.append(inCamera, j+1) # Als code is base 0 convert to base 1
+                        ccdNum = np.append(ccdNum, iccd+1) # ""
+                        fitsxpos = np.append(fitsxpos, fitpx[0])
+                        fitsypos = np.append(fitsypos, fitpx[1])
+                        ccdxpos = np.append(ccdxpos, ccdpx[0])
+                        ccdypos = np.append(ccdypos, ccdpx[1])
+
         else:
             print('Spacecraft Pointing Not specified!')
         
@@ -818,7 +820,20 @@ if __name__ == '__main__':
     parser.add_argument("-fpg", "--fpgParameterFiles", nargs=4,\
                         help="Instead of default focal plane geometry parameters, list the 4 filenames for the fpg files to use.  Expects files in Al's format in camera numerical order")
     args = parser.parse_args()
- 
+
+# DEBUG BLOCK for hard coding input parameters and testing
+#    class test_arg:
+#        def __init__(self):
+#            self.ticId = 281541555
+#            self.coord = None
+#            self.inputFile = None
+#            self.sector = None
+#            self.fpgParameterFiles = None
+#            self.outputFile = None
+#            self.combinedFits = False
+#            self.noCollateral = False
+#    args = test_arg()
+    
     # At least one Mode -t -c -f must have been specified
     if (args.ticId is None) and (args.coord is None) and (args.inputFile is None):
         print('You must specify one and only one mode -t, -c, -f')

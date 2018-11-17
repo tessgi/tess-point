@@ -29,7 +29,7 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard)
 
-### VERSION: 0.1
+### VERSION: 0.1.1
 
 ### NOTES
 - Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic.
@@ -54,7 +54,7 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 
 ### TODOS:
 1. Check python 2.7 compatability
-1. Currently the python module expects to be run on command line provide a wrapper function such that the module can be more readily used with external python codes
+1. Currently the python module expects to be run on command line.  Provide a wrapper function such that the module can be more readily used with external python codes
 1. Include approximate or detailed velocity aberration corrections
 2. Provide estimated pointing table for TESS Year 2
 3. Time dependent Focal plane geometry
@@ -71,3 +71,10 @@ https://mast.stsci.edu/api/v0/pyex.html
 
 ### IMPLEMENTATION DETAILS:
 In summary, the code begins with a space craft bore site pointing in RA, Dec, and roll angle.  A series of Euler angle translation matrices are calculated based upon the space craft bore site.  Next the target coordinates in RA and Dec are translated to the space craft bore site frame.  Next, the target coordinates are translated to each of the four TESS camera frames.  Once target coordinates are translated to the  camera frame the radial position of the target relative to the camera center is checked to see if it is potentially in the camera field of view. If so, the focal plane position is calculated using a radial polynomial model with a constant term and terms the even powers (2nd ,4th , and 8th).  Rotations are applied to convert the on sky positions to the detector readout directions.
+
+### Notes to self
+1. Make code changes
+2. Update version number in README.md, code, and setup.py
+3. git add, commit, push
+4. upload to PyPI - python setup.py sdist upload -r pypitest
+5. Make release on github
