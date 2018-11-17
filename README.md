@@ -76,5 +76,5 @@ In summary, the code begins with a space craft bore site pointing in RA, Dec, an
 1. Make code changes
 2. Update version number in README.md, code, and setup.py
 3. git add, commit, push
-4. upload to PyPI - python setup.py sdist upload -r pypitest
+4. upload to PyPI - python setup.py sdist upload -r pypi
 5. Make release on github
