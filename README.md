@@ -27,7 +27,7 @@ pip install tess-point
 Alternatively, the python module is a single file, tess_stars2px.py, so one can avoid pip install.  Just download tess_stars2px.py from github and use it in a local directory.  The above commands would then be python tess_starspx.py -t 261136679
 
 ### AUTHORS
-Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard)
+Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).
 
 ### VERSION: 0.1.1
 
