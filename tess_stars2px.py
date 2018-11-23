@@ -14,9 +14,30 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  This python translation by Christopher J. Burke (MIT)
  Testing and focal plane geometry refinements by Michael Fausnaugh & 
          Roland Vanderspek (MIT)
- Testing by Thomas Barclay (NASA Goddard)
+ Testing by Thomas Barclay (NASA Goddard) &
+         Jessica Roberts (Univ. of Colorado)
 
-VERSION: 0.1.1
+VERSION: 0.2.0
+
+WHAT'S NEW:
+    -Pre filter step previously depended on the current mission profile of 
+        pointings aligned with ecliptic coordinates to work.  The pre filter
+        step was rewritten in order to support mission planning not tied 
+        to ecliptic alignment.  End users should not see any change in 
+        results with this change.  However, local copies can be modified
+        for arbitrary spacecraft ra,dec, roll and get same functionality.
+    -A reverse option is added to find the ra and dec for a given 
+        sector, camera, ccd, colpix, rowpix.  This is most useful for 
+        planning arbitrary pointing boundaries and internal use to identify
+        targets on uncalibrated
+        images that don't have WCS info available.  For precision work one
+        shold defer to WCS information on calibrated FFIs rather than this tool.
+        The reverse is a brute force 'hack' that uses a minimizer on the
+        forward direction code to find ra and dec.  In principle it is possible
+        to reverse the matrix transforms to get the ra and dec directly, but
+        I chose this less efficient method for expediency.  The minimizer
+        is not guaranteed to converge at correct answer.  The current method
+        is a slow way to do this.
 
 NOTES:
     -Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic
@@ -61,7 +82,9 @@ TODOS:
     -Include approximate or detailed velocity aberration corrections
     -Provide estimated pointing table for TESS Year 2
     -Time dependent Focal plane geometry
-    -Do the reverse transormation go from pixel to RA and Dec
+    -Do the reverse transormation go from pixel to RA and Dec in a direct
+        reverse transform manner rather than the current implementation
+        that does a brute force minimization from the forward ra,dec-->pix code
 
 DEPENDENCIES:
     python 3+
@@ -124,7 +147,8 @@ except ImportError:  # Python 2.x
 try: # Python 3.x
     import http.client as httplib 
 except ImportError:  # Python 2.x
-    import httplib  
+    import httplib
+import scipy.optimize as opt
 
 
 class Levine_FPG():
@@ -570,6 +594,54 @@ class Levine_FPG():
                 fitpx[1] = ccdpx[1]
                 
         return iccd, ccdpx, fitpx
+
+    def mm_to_pix_single_ccd(self, icam, xy, iccd):
+        """Convert focal plane to pixel location also need to add in the
+            auxillary pixels added into FFIs
+        """
+        CCDWD_T=2048
+        CCDHT_T=2058
+        ROWA=44
+        ROWB=44
+        COLDK_T=20
+        xya = np.copy(xy)
+        xyb = np.zeros_like(xya)
+        ccdpx = np.zeros_like(xya)
+        fitpx = np.zeros_like(xya)
+        if iccd == 0:
+            xyb[0] = xya[0] - self.ccdxy0[icam][iccd][0]
+            xyb[1] = xya[1] - self.ccdxy0[icam][iccd][1]
+            xyccd = self.xyrotate(self.ccdang[icam][iccd], xyb)
+            ccdpx[0] = (xyccd[0] / self.pixsz[icam][iccd][0]) - 0.5
+            ccdpx[1] = (xyccd[1] / self.pixsz[icam][iccd][1]) - 0.5
+            fitpx[0] = (CCDWD_T - ccdpx[0]) + CCDWD_T + 2*ROWA + ROWB - 1.0
+            fitpx[1] = (CCDHT_T - ccdpx[1]) + CCDHT_T + 2*COLDK_T - 1.0
+        if iccd == 3:
+            xyb[0] = xya[0] - self.ccdxy0[icam][iccd][0]
+            xyb[1] = xya[1] - self.ccdxy0[icam][iccd][1]
+            xyccd = self.xyrotate(self.ccdang[icam][iccd], xyb)
+            ccdpx[0] = (xyccd[0] / self.pixsz[icam][iccd][0]) - 0.5
+            ccdpx[1] = (xyccd[1] / self.pixsz[icam][iccd][1]) - 0.5
+            fitpx[0] = ccdpx[0] + CCDWD_T + 2*ROWA + ROWB
+            fitpx[1] = ccdpx[1]
+        if iccd == 1:
+            xyb[0] = xya[0] - self.ccdxy0[icam][iccd][0]
+            xyb[1] = xya[1] - self.ccdxy0[icam][iccd][1]
+            xyccd = self.xyrotate(self.ccdang[icam][iccd], xyb)
+            ccdpx[0] = (xyccd[0] / self.pixsz[icam][iccd][0]) - 0.5
+            ccdpx[1] = (xyccd[1] / self.pixsz[icam][iccd][1]) - 0.5
+            fitpx[0] = (CCDWD_T - ccdpx[0]) + ROWA - 1.0
+            fitpx[1] = (CCDHT_T - ccdpx[1]) + CCDHT_T + 2*COLDK_T - 1.0
+        if iccd == 2:
+            xyb[0] = xya[0] - self.ccdxy0[icam][iccd][0]
+            xyb[1] = xya[1] - self.ccdxy0[icam][iccd][1]
+            xyccd = self.xyrotate(self.ccdang[icam][iccd], xyb)
+            ccdpx[0] = (xyccd[0] / self.pixsz[icam][iccd][0]) - 0.5
+            ccdpx[1] = (xyccd[1] / self.pixsz[icam][iccd][1]) - 0.5
+            fitpx[0] = ccdpx[0] + ROWA
+            fitpx[1] = ccdpx[1]
+                
+        return ccdpx, fitpx
         
     def radec2pix(self, ras, decs):
         """ After the rotation matrices are defined to the actual
@@ -613,6 +685,35 @@ class Levine_FPG():
             print('Spacecraft Pointing Not specified!')
         
         return inCamera, ccdNum, fitsxpos, fitsypos, ccdxpos, ccdypos
+
+    def radec2pix_nocheck_single(self, ras, decs, cam, iccd):
+        """
+            ra and dec to pixel coords mapping
+            With no checks and assuming a single target and detector
+            Supports minimizing for reverse mode
+        """
+        deg2rad = np.pi / 180.0
+        # Convert ra and dec spherical coords to cartesian
+        vec0s, vec1s, vec2s = self.sphereToCart(ras, decs)
+        curVec = np.array([vec0s, vec1s, vec2s], dtype=np.double)
+        j = cam
+        # Do the rotation from ra dec coords to camera coords
+        camVec = np.matmul(self.rmat4[j], curVec)
+        # Get the longitude and latitude of camera coords position
+        lng, lat = self.cartToSphere(camVec)
+        lng = lng / deg2rad
+        lat = lat / deg2rad
+        # Get the xy focal plane position in mm
+        xyfp = self.optics_fp(j, lng, lat)
+        # Convert mm to pixels
+        ccdpx, fitpx = self.mm_to_pix_single_ccd(j, xyfp, iccd)
+        ccdNum = iccd+1
+        fitsxpos = fitpx[0]
+        fitsypos = fitpx[1]
+        ccdxpos = ccdpx[0]
+        ccdypos = ccdpx[1]
+        
+        return ccdNum, fitsxpos, fitsypos, ccdxpos, ccdypos, lat
         
 class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
@@ -630,7 +731,8 @@ class TESS_Spacecraft_Pointing_Data:
     hemis = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1], dtype=np.int)
     # Actual observed pointings versus TBD/predicted pointings
     obsPoint = np.array([1,1,1,0,0,0,0,0,0,0,0,0,0], dtype=np.int)
-    
+    camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=np.float)
+
     def __init__(self, trySector=None, fpgParmFileList=None):
         # Convert S/C boresite pointings to ecliptic coords for each camera
         # If trySector is set only keep the single requested sector
@@ -643,30 +745,27 @@ class TESS_Spacecraft_Pointing_Data:
             self.hemis = self.hemis[idx]
             self.obsPoint = self.obsPoint[idx]
         nPoints = len(self.sectors)
-        self.camEclipLat = np.zeros((4, nPoints), dtype=np.float)
-        self.camEclipLon = np.zeros((4, nPoints), dtype=np.float)
         self.camRa = np.zeros((4, nPoints), dtype=np.float)
         self.camDec = np.zeros((4, nPoints), dtype=np.float)
-        # Convert S/C boresite ra and dec to ecliptic coords
+        # Convert S/C boresite ra and dec to camera ra and dec
         for iPnt in range(nPoints):
-            scCoords = SkyCoord(self.ras[iPnt], self.decs[iPnt], unit='deg')
-            scEclipCoords = scCoords.transform_to(frame='barycentrictrueecliptic')
-            scEclipLat = scEclipCoords.lat.deg
-            scEclipLong = scEclipCoords.lon.deg
-            # Camera ecliptic latitude offset sign depends on which hemisphere
-            camLatOffsets =  np.array([36.0, 12.0, -12.0, -36.0])*self.hemis[iPnt]
+            curra = self.ras[iPnt]
+            curdec = self.decs[iPnt]
+            curroll = self.rolls[iPnt]
+            camposangs = np.array([180.0-curroll, 180.0-curroll, \
+                                   360.0-curroll, 360.0-curroll])
+            camposangs = np.mod(camposangs, 360.0)
             for iCam in range(4):
-                self.camEclipLat[iCam,iPnt] = scEclipLat + camLatOffsets[iCam]
-                self.camEclipLon[iCam,iPnt] = scEclipLong
-                # Just for testing convert camera ecliptic coords to ra and dec
+                # Need to correct s/c roll to posang
+                pang = camposangs[iCam]
+                camra, camdec = get_radec_from_posangsep(curra, curdec, \
+                                            pang, self.camSeps[iCam])
+                self.camRa[iCam,iPnt] = camra 
+                self.camDec[iCam,iPnt] = camdec 
+                # Just for testing camera coords 
                 # compare to published values
-                #cc = SkyCoord(self.camEclipLon[iCam,iPnt], \
-                #              np.max([-89.99999,self.camEclipLat[iCam,iPnt]]), \
-                #              frame='barycentrictrueecliptic', unit='deg')
-                #cc = cc.transform_to(frame='icrs')
-                #print('{:d} {:d} {:f} {:f} {:f} {:f}'.format(self.sectors[iPnt],iCam+1,\
-                #         self.camEclipLon[iCam,iPnt], self.camEclipLat[iCam,iPnt], \
-                #         cc.ra.deg, cc.dec.deg))
+#                print('{:d} {:d} {:f} {:f}'.format(self.sectors[iPnt],iCam+1,\
+#                         self.camRa[iCam,iPnt], self.camDec[iCam,iPnt]))
         # For every pointing make a Levine pointing class object
         self.fpgObjs = []
         fpg_file_list=None
@@ -675,7 +774,29 @@ class TESS_Spacecraft_Pointing_Data:
         for iPnt in range(nPoints):
             sc_ra_dec_roll =  np.array([self.ras[iPnt], self.decs[iPnt], self.rolls[iPnt]])
             self.fpgObjs.append(Levine_FPG(sc_ra_dec_roll, fpg_file_list=fpg_file_list))
-        
+
+def get_radec_from_posangsep(ra, dec, pa, sep):
+    deg2rad = np.pi/180.0
+    rad2deg = 180.0/np.pi
+    twopi = 2.0*np.pi
+    pidtwo = np.pi/2.0
+    rar = ra*deg2rad
+    decr = dec*deg2rad
+    par = pa*deg2rad
+    sepr = sep*deg2rad
+    c = pidtwo - decr
+    bigB = par
+    a = sepr
+    b = np.arccos((np.cos(c)*np.cos(a) + np.sin(c)*np.sin(a)*np.cos(bigB)))
+    newdec = pidtwo - b
+    delalp = np.arccos(np.min([(np.cos(sepr)-np.sin(decr)*np.sin(newdec))/(np.cos(decr)*np.cos(newdec)),1.0]))
+    if pa > 180.0:
+        newra = rar - delalp
+    else:
+        newra = rar + delalp
+#    print(pa, newra*rad2deg, rar*rad2deg, delalp*rad2deg)
+    newra = np.mod(newra, twopi)
+    return newra*rad2deg, newdec*rad2deg
                 
 
 class target_info:
@@ -714,32 +835,27 @@ def doRoughPosition(targinfo, scinfo):
     # Return the combinations of sector and detectors that can possibly observe
     #  target
     # go through each position in the spacecraft info class
-    eLat = targinfo.eclipLat
-    eLon = targinfo.eclipLong
-    FOVDeg = 12.5
+    tRa = targinfo.ra
+    tDec = targinfo.dec
+    FOVDeg = 17.68
     nPoints = len(scinfo.sectors)
+    targCoords = SkyCoord(tRa, tDec, unit='deg', frame='icrs')
     for iPnt in range(nPoints):
-        # First check target is in correct ecliptic hemisphere of pointing
-        targEclipCoords = SkyCoord(eLon, eLat, \
-                                   frame='barycentrictrueecliptic', unit='deg')
-        if not np.sign(eLat) == scinfo.hemis[iPnt]:
-            for iCam in range(4):
-                camLon = scinfo.camEclipLon[iCam,iPnt]
-                camLat = scinfo.camEclipLat[iCam,iPnt]
-                camCenter = SkyCoord(camLon, np.max([-89.99999,camLat]), unit='deg', frame='barycentrictrueecliptic')
-                posAngs = camCenter.position_angle(targEclipCoords)
-                seps = camCenter.separation(targEclipCoords)
-                xseps = (seps * np.cos(posAngs.rad)).deg
-                yseps = (seps * np.sin(posAngs.rad)).deg
-                # Check for potentially on silicon
-                if np.abs(xseps)<FOVDeg and np.abs(yseps) < FOVDeg:
-                    # Append potential pointing camera combo to targets list
-                    targinfo.sectors = np.append(targinfo.sectors, scinfo.sectors[iPnt])
-                    targinfo.onSiliconFlag = np.append(targinfo.onSiliconFlag, 0)
-                    targinfo.possibleOnSiliconFlag = np.append(targinfo.possibleOnSiliconFlag, 1)
-                    targinfo.cameras = np.append(targinfo.cameras, iCam+1)
-                    targinfo.xpxs = np.append(targinfo.xpxs, 0.0)
-                    targinfo.ypxs = np.append(targinfo.ypxs, 0.0)
+        for iCam in range(4):
+            camRa = scinfo.camRa[iCam,iPnt]
+            camDec = scinfo.camDec[iCam,iPnt]
+            camCenter = SkyCoord(camRa, np.max([-89.99999,camDec]), unit='deg', frame='icrs')
+            posAngs = camCenter.position_angle(targCoords)
+            seps = camCenter.separation(targCoords)
+            # Check for potentially on silicon
+            if seps.deg < FOVDeg:
+                # Append potential pointing camera combo to targets list
+                targinfo.sectors = np.append(targinfo.sectors, scinfo.sectors[iPnt])
+                targinfo.onSiliconFlag = np.append(targinfo.onSiliconFlag, 0)
+                targinfo.possibleOnSiliconFlag = np.append(targinfo.possibleOnSiliconFlag, 1)
+                targinfo.cameras = np.append(targinfo.cameras, iCam+1)
+                targinfo.xpxs = np.append(targinfo.xpxs, 0.0)
+                targinfo.ypxs = np.append(targinfo.ypxs, 0.0)
     return targinfo
 
 ## [Mast Query]
@@ -819,12 +935,15 @@ if __name__ == '__main__':
                         help="Output detector pixel coordinates for an internal format where there are not leading collateral pixels and zero based")
     parser.add_argument("-fpg", "--fpgParameterFiles", nargs=4,\
                         help="Instead of default focal plane geometry parameters, list the 4 filenames for the fpg files to use.  Expects files in Al's format in camera numerical order")
+    parser.add_argument("-r", "--reverse", nargs=5,\
+                        help="Do reverse search.  Return RA Dec for a given pixel position.  5 parameters sector cam ccd colpix rowpix")
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
 #    class test_arg:
 #        def __init__(self):
-#            self.ticId = 281541555
+#            #self.ticId = 281541555
+#            self.ticId = None
 #            self.coord = None
 #            self.inputFile = None
 #            self.sector = None
@@ -832,107 +951,187 @@ if __name__ == '__main__':
 #            self.outputFile = None
 #            self.combinedFits = False
 #            self.noCollateral = False
+#            self.reverse = [2,1,2,2092.0,1.0]
 #    args = test_arg()
     
     # At least one Mode -t -c -f must have been specified
-    if (args.ticId is None) and (args.coord is None) and (args.inputFile is None):
-        print('You must specify one and only one mode -t, -c, -f')
+    if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None):
+        print('You must specify one and only one mode -t, -c, -f, -r')
         print('`python stars2px.py -h\' for help')
         sys.exit(1)
-        
-    # Do single coords first
-    if not (args.coord is None):
-        nTarg = 1
-        starTics = np.array([0], dtype=np.int32)
-        starRas = np.array([args.coord[0]], dtype=np.float)
-        starDecs = np.array([args.coord[1]], dtype=np.float)
-    else:
-        if not (args.inputFile is None): # Check for input file list next
-            # Read in star positions in input
-            # Now go through stars
-            starFile = args.inputFile
-            dataBlock = np.genfromtxt(starFile, dtype=['i4','f8','f8'])
-            starTics = np.atleast_1d(dataBlock['f0'])
-            starRas = np.atleast_1d(dataBlock['f1'])
-            starDecs = np.atleast_1d(dataBlock['f2'])
+
+    # Check for reverse mode
+    if (args.reverse is None):        
+        # Do single coords first
+        if not (args.coord is None):
+            nTarg = 1
+            starTics = np.array([0], dtype=np.int32)
+            starRas = np.array([args.coord[0]], dtype=np.float)
+            starDecs = np.array([args.coord[1]], dtype=np.float)
         else:
-            # Must have requested MAST query with TIC ID
-            # Make a list of TICs using strings
-            starTics = np.array([args.ticId], dtype=np.int32)
-            ticStringList = ['{0:d}'.format(x) for x in starTics]    
-            # Setup mast query
-            request = {'service':'Mast.Catalogs.Filtered.Tic', \
-               'params':{'columns':'*', 'filters':[{ \
-                        'paramName':'ID', 'values':ticStringList}]}, \
-                'format':'json', 'removenullcolumns':True}
-            headers, outString = mastQuery(request)
-            outObject = json.loads(outString)
-            starRas = np.array([x['ra'] for x in outObject['data']])
-            starDecs = np.array([x['dec'] for x in outObject['data']])
-    
-    trySector = None
-    if not (args.sector is None):
-        trySector = args.sector
-    fpgParmFileList = None
-    if not (args.fpgParameterFiles is None):
-        fpgParmFileList = [x for x in args.fpgParameterFiles]
-
+            if not (args.inputFile is None): # Check for input file list next
+                # Read in star positions in input
+                # Now go through stars
+                starFile = args.inputFile
+                dataBlock = np.genfromtxt(starFile, dtype=['i4','f8','f8'])
+                starTics = np.atleast_1d(dataBlock['f0'])
+                starRas = np.atleast_1d(dataBlock['f1'])
+                starDecs = np.atleast_1d(dataBlock['f2'])
+            else:
+                # Must have requested MAST query with TIC ID
+                # Make a list of TICs using strings
+                starTics = np.array([args.ticId], dtype=np.int32)
+                ticStringList = ['{0:d}'.format(x) for x in starTics]    
+                # Setup mast query
+                request = {'service':'Mast.Catalogs.Filtered.Tic', \
+                   'params':{'columns':'*', 'filters':[{ \
+                            'paramName':'ID', 'values':ticStringList}]}, \
+                    'format':'json', 'removenullcolumns':True}
+                headers, outString = mastQuery(request)
+                outObject = json.loads(outString)
+                starRas = np.array([x['ra'] for x in outObject['data']])
+                starDecs = np.array([x['dec'] for x in outObject['data']])
         
-    # Instantiate Spacecraft position info
-    scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
-    # Open output file if requested
-#    if not (args.outputFile is None):
-#        fout = open(args.outputFile, 'w')
-
-    # Add header to outputfile
-    if not (args.outputFile is None):
-        fileOutputHeader(args.outputFile, fpgParmFileList=fpgParmFileList)
+        trySector = None
+        if not (args.sector is None):
+            trySector = args.sector
+        fpgParmFileList = None
+        if not (args.fpgParameterFiles is None):
+            fpgParmFileList = [x for x in args.fpgParameterFiles]
+    
+            
+        # Instantiate Spacecraft position info
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        # Open output file if requested
+    #    if not (args.outputFile is None):
+    #        fout = open(args.outputFile, 'w')
+    
+        # Add header to outputfile
+        if not (args.outputFile is None):
+            fileOutputHeader(args.outputFile, fpgParmFileList=fpgParmFileList)
+        else:
+            # add single line header to stdout
+            print('# TIC     |   RA      |   Dec     | EclipticLong | EclipticLat | Sector | Camera | Ccd | ColPix | RowPix')
+        # Now make list of the star objects
+        starList = make_target_objects(starTics, starRas, starDecs)
+        #print('Finished converting coords to ecliptic')
+        # Make rough determination as to which pointing camera combos are worth
+        # Checking in detail and then do detailed checking
+        findAny=False
+        for i, curTarg in enumerate(starList):
+            curTarg = doRoughPosition(curTarg, scinfo)
+            #print('Rough Position Done: {:d} {:d}'.format(i, curTarg.ticid))
+            # Look to see if target was in any sectors
+            if len(curTarg.sectors)>0:
+                uniqSectors = np.unique(curTarg.sectors)
+                starRas = np.array([curTarg.ra])
+                starDecs =  np.array([curTarg.dec])
+                for curSec in uniqSectors:
+                    idxSec = np.where(scinfo.sectors == curSec)[0][0]
+                    starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
+                               starRas, starDecs)
+                    for jj, cam in enumerate(starInCam):
+                        # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
+                        xUse = starCcdXs[jj] + 45.0
+                        yUse = starCcdYs[jj] + 1.0
+                        xMin = 44.0
+                        maxCoord = 2049
+                        if args.combinedFits:
+                            xUse = starFitsXs[jj]
+                            yUse = starFitsYs[jj]
+                            maxCoord = 4097
+                            xMin = 0.0
+                        if args.noCollateral:
+                            xUse = starCcdXs[jj]
+                            yUse = starCcdYs[jj]
+                            xMin = 0.0
+                        if xUse>xMin and yUse>0 and xUse<maxCoord and yUse<maxCoord:
+                            findAny=True
+                            strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
+                               curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
+                               curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
+                            if not (args.outputFile is None):
+                                args.outputFile.write('{:s}\n'.format(strout))
+                            else:
+                                print(strout)
+    
+        if not findAny:
+            print('No Target/s were found to be on detectors')
+    # Do reverse mode
     else:
-        # add single line header to stdout
-        print('# TIC     |   RA      |   Dec     | EclipticLong | EclipticLat | Sector | Camera | Ccd | ColPix | RowPix')
-    # Now make list of the star objects
-    starList = make_target_objects(starTics, starRas, starDecs)
-    #print('Finished converting coords to ecliptic')
-    # Make rough determination as to which pointing camera combos are worth
-    # Checking in detail and then do detailed checking
-    findAny=False
-    for i, curTarg in enumerate(starList):
-        curTarg = doRoughPosition(curTarg, scinfo)
-        #print('Rough Position Done: {:d} {:d}'.format(i, curTarg.ticid))
-        # Look to see if target was in any sectors
-        if len(curTarg.sectors)>0:
-            uniqSectors = np.unique(curTarg.sectors)
-            starRas = np.array([curTarg.ra])
-            starDecs =  np.array([curTarg.dec])
-            for curSec in uniqSectors:
-                idxSec = np.where(scinfo.sectors == curSec)[0][0]
-                starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
-                           starRas, starDecs)
-                for jj, cam in enumerate(starInCam):
-                    # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
-                    xUse = starCcdXs[jj] + 45.0
-                    yUse = starCcdYs[jj] + 1.0
-                    xMin = 44.0
-                    maxCoord = 2049
-                    if args.combinedFits:
-                        xUse = starFitsXs[jj]
-                        yUse = starFitsYs[jj]
-                        maxCoord = 4097
-                        xMin = 0.0
-                    if args.noCollateral:
-                        xUse = starCcdXs[jj]
-                        yUse = starCcdYs[jj]
-                        xMin = 0.0
-                    if xUse>xMin and yUse>0 and xUse<maxCoord and yUse<maxCoord:
-                        findAny=True
-                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
-                           curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
-                           curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
-                        if not (args.outputFile is None):
-                            args.outputFile.write('{:s}\n'.format(strout))
-                        else:
-                            print(strout)
+        trySector = int(args.reverse[0])
+        fpgParmFileList = None
+        if not (args.fpgParameterFiles is None):
+            fpgParmFileList = [x for x in args.fpgParameterFiles]
+        # Instantiate Spacecraft position info
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        # Camera center ra and dec
+        iCam = int(args.reverse[1])-1
+        iCcd = int(args.reverse[2])-1
+        colWnt = float(args.reverse[3])
+        rowWnt = float(args.reverse[4])
+        camRa = scinfo.camRa[iCam,0]
+        camDec = scinfo.camDec[iCam,0]
+        def minFunc(x, iCam, iCcd, colWnt, rowWnt):
+            starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs, lat = scinfo.fpgObjs[0].radec2pix_nocheck_single(\
+                               x[0], x[1], iCam, iCcd)
+            xUse = starCcdXs + 45.0
+            yUse = starCcdYs + 1.0
+            # Penalize latitudes <70
+            latBad = 0.0
+            if lat < 70.0:
+                latBad = 70.0-lat
+            zUse = np.power(xUse-colWnt,2) + np.power(yUse-rowWnt,2) + np.power(latBad,4) + 1.0
+            return zUse
+        # Use an initial minimize with bounds to keep things from going haywire
+        # start with camera center
+        optResult = opt.minimize(minFunc, [camRa, camDec], \
+                                 args=(iCam, iCcd, colWnt, rowWnt), method='TNC', \
+                                 bounds=[[0.0,410.0],[-90.0, 90.0]], tol=1.0e-6, \
+                                 options={'maxiter':500})
+        newRa = optResult.x[0]
+        newDec = optResult.x[1]
+        #  Refine minimization to hopefully converge
+        optResult2 = opt.minimize(minFunc, [newRa, newDec], \
+                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
+                                 tol=1.0e-6, \
+                                 options={'maxiter':500})
+        newRa2 = optResult2.x[0]
+        newDec2 = optResult2.x[1]
+        minQuality = optResult2.fun
+        newRa2 = np.mod(newRa2, 360.0)
+        if np.abs(minQuality - 1.0) > 1.0e-4:
 
-    if not findAny:
-        print('No Target/s were found to be on detectors')
+            newRa = camRa + (newRa-camRa)/2.0
+            newDec = camDec + (newDec-camDec)/2.0
+            optResult3 = opt.minimize(minFunc, [newRa, newDec], \
+                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
+                                 tol=1.0e-6, \
+                                 options={'maxiter':500}) 
+            newRa3 = optResult3.x[0]
+            newDec3 = optResult3.x[1]
+            minQuality = optResult3.fun
+            newRa3 = np.mod(newRa3, 360.0)
+            if newDec3 < -90.0:
+                newDec3 = -90.0 + (-90.0 - newDec3)
+                newRa3 = newRa3 + 180.0
+                newRa3 = np.mod(newRa3, 360.0)
+            if newDec3 > 90.0:
+                newDec3 = 90.0 + (90.0 - newDec3)
+                newRa3 = newRa3 + 180.0
+                newRa3 = np.mod(newRa3, 360.0)
+                
+            print(newRa3, newDec3, minQuality)
+            
+        else:
+            if newDec2 < -90.0:
+                newDec2 = -90.0 + (-90.0 - newDec2)
+                newRa2 = newRa2 + 180.0
+                newRa2 = np.mod(newRa2, 360.0)
+            if newDec2 > 90.0:
+                newDec2 = 90.0 + (90.0 - newDec2)
+                newRa2 = newRa2 + 180.0
+                newRa2 = np.mod(newRa2, 360.0)
+
+            print(newRa2, newDec2, minQuality)
         

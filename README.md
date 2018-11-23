@@ -29,7 +29,15 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).
 
-### VERSION: 0.1.1
+### VERSION: 0.2.0
+
+### WHAT'S NEW:
+- No Bug fixes to primary functionality.  This version adds some features
+primarily for internal and mission planning purposes
+
+- Pre filter step previously depended on the current mission profile of pointings aligned with ecliptic coordinates to work.  The pre filter step was rewritten in order to support mission planning not tied to ecliptic alignment.  End users should not see any change in results with this change.  However, local copies can be modified for arbitrary spacecraft ra,dec, roll and get same functionality.
+
+- A reverse option is added to find the ra and dec for a given sector, camera, ccd, colpix, rowpix.  This is most useful for planning arbitrary pointing boundaries and internal use to identify targets on uncalibrated images that don't have WCS info available.  For precision work one should defer to WCS information on calibrated FFIs rather than this tool.  The reverse is a brute force 'hack' that uses a minimizer on the forward direction code to find ra and dec.  In principle it is possible to reverse the matrix transforms to get the ra and dec directly, but I chose this less efficient method for expediency.  The minimizer is not guaranteed to converge at correct answer.  The current method is a slow way to do this.
 
 ### NOTES
 - Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic.
