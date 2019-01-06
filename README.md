@@ -20,6 +20,10 @@ pip install tess-point
 
 `python -m tess_stars2px -t 261136679`
 
+- Return pixel coordinates by target name (name resolved via [SESAME](http://cds.u-strasbg.fr/cgi-bin/Sesame))
+
+`python -m tess_stars2px -n "pi Mensae"`
+
 - Multi-target pixel coordinates results.  List the target TIC ID or other integer identifier [can be zero]; ra [deg]; dec [deg] in a whitespace delimited text file.  Process the target list.
 
 `python -m tess_stars2px -f <target_list>`

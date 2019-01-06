@@ -16,8 +16,9 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Roland Vanderspek (MIT)
  Testing by Thomas Barclay (NASA Goddard) &
          Jessica Roberts (Univ. of Colorado)
+ Sesame queries by Brett Morris (UW)
 
-VERSION: 0.2.0
+VERSION: 0.3.0
 
 WHAT'S NEW:
     -Pre filter step previously depended on the current mission profile of 
@@ -937,6 +938,8 @@ if __name__ == '__main__':
                         help="Instead of default focal plane geometry parameters, list the 4 filenames for the fpg files to use.  Expects files in Al's format in camera numerical order")
     parser.add_argument("-r", "--reverse", nargs=5,\
                         help="Do reverse search.  Return RA Dec for a given pixel position.  5 parameters sector cam ccd colpix rowpix")
+    parser.add_argument("-n", "--name", nargs=1, type=str, \
+                        help="Search for a target by resolving its name with SESAME")
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
@@ -955,7 +958,7 @@ if __name__ == '__main__':
 #    args = test_arg()
     
     # At least one Mode -t -c -f must have been specified
-    if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None):
+    if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None) and (args.name is None):
         print('You must specify one and only one mode -t, -c, -f, -r')
         print('`python stars2px.py -h\' for help')
         sys.exit(1)
@@ -963,11 +966,22 @@ if __name__ == '__main__':
     # Check for reverse mode
     if (args.reverse is None):        
         # Do single coords first
-        if not (args.coord is None):
+        if args.coord is not None and args.name is None:
             nTarg = 1
             starTics = np.array([0], dtype=np.int32)
             starRas = np.array([args.coord[0]], dtype=np.float)
             starDecs = np.array([args.coord[1]], dtype=np.float)
+        elif args.coord is None and args.name is not None:
+            nTarg = 1
+            starTics = np.array([0], dtype=np.int32)
+
+            # Name resolve
+            coordinate = SkyCoord.from_name(args.name[0])
+            print("Coordinates for {0}: ({1}, {2})"
+                  .format(args.name[0], coordinate.ra.degree,
+                          coordinate.dec.degree))
+            starRas = np.array([coordinate.ra.degree], dtype=np.float)
+            starDecs = np.array([coordinate.dec.degree], dtype=np.float)
         else:
             if not (args.inputFile is None): # Check for input file list next
                 # Read in star positions in input
