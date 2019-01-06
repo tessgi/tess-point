@@ -21,24 +21,11 @@ AUTHORS: Original programming in C and focal plane geometry solutions
 VERSION: 0.3.0
 
 WHAT'S NEW:
-    -Pre filter step previously depended on the current mission profile of 
-        pointings aligned with ecliptic coordinates to work.  The pre filter
-        step was rewritten in order to support mission planning not tied 
-        to ecliptic alignment.  End users should not see any change in 
-        results with this change.  However, local copies can be modified
-        for arbitrary spacecraft ra,dec, roll and get same functionality.
-    -A reverse option is added to find the ra and dec for a given 
-        sector, camera, ccd, colpix, rowpix.  This is most useful for 
-        planning arbitrary pointing boundaries and internal use to identify
-        targets on uncalibrated
-        images that don't have WCS info available.  For precision work one
-        shold defer to WCS information on calibrated FFIs rather than this tool.
-        The reverse is a brute force 'hack' that uses a minimizer on the
-        forward direction code to find ra and dec.  In principle it is possible
-        to reverse the matrix transforms to get the ra and dec directly, but
-        I chose this less efficient method for expediency.  The minimizer
-        is not guaranteed to converge at correct answer.  The current method
-        is a slow way to do this.
+    -Query by name using Sesame by Brett Morris
+    -Wrapper function implemented tess_stars2px_function_entry()
+     With an example in the readme for using tess_stars2px in a python program
+     rather than on the command line.
+    
 
 NOTES:
     -Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic
@@ -74,6 +61,28 @@ NOTES:
         is not available until the FFI files are released, whereas
         this code can predict positions in advance of data release.
      -Hard coded focal plane geometry parameters from rfpg5_c1kb.txt
+
+NOTES OLDER VERSIONS:
+    0.2.0
+    -Pre filter step previously depended on the current mission profile of 
+        pointings aligned with ecliptic coordinates to work.  The pre filter
+        step was rewritten in order to support mission planning not tied 
+        to ecliptic alignment.  End users should not see any change in 
+        results with this change.  However, local copies can be modified
+        for arbitrary spacecraft ra,dec, roll and get same functionality.
+    -A reverse option is added to find the ra and dec for a given 
+        sector, camera, ccd, colpix, rowpix.  This is most useful for 
+        planning arbitrary pointing boundaries and internal use to identify
+        targets on uncalibrated
+        images that don't have WCS info available.  For precision work one
+        shold defer to WCS information on calibrated FFIs rather than this tool.
+        The reverse is a brute force 'hack' that uses a minimizer on the
+        forward direction code to find ra and dec.  In principle it is possible
+        to reverse the matrix transforms to get the ra and dec directly, but
+        I chose this less efficient method for expediency.  The minimizer
+        is not guaranteed to converge at correct answer.  The current method
+        is a slow way to do this.
+
     
 TODOS:
     -Check python 2.7 compatability
@@ -916,6 +925,79 @@ def fileOutputHeader(fp, fpgParmFileList=None):
     fp.write('# 9 [float] - Column pixel location for target\n')
     fp.write('# 10 [float] - Row pixel location for target\n')
              
+
+def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scInfo=None, \
+                              fpgParmFileList=None, combinedFits=False,\
+                              noCollateral=False):
+    
+    if scInfo == None:
+        # Instantiate Spacecraft position info
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+    else:
+        scinfo = scInfo
+    # Now make list of the star objects
+    starList = make_target_objects(np.atleast_1d(starIDs), \
+                                   np.atleast_1d(starRas), np.atleast_1d(starDecs))
+    # Make rough determination as to which pointing camera combos are worth
+    # Checking in detail and then do detailed checking
+    findAny=False
+    outID = np.array([-1], dtype=np.int)
+    outEclipLong = np.array([-1.0], dtype=np.float)
+    outEclipLat = np.array([-1.0], dtype=np.float)
+    outSec = np.array([-1], dtype=np.int)
+    outCam = np.array([-1], dtype=np.int)
+    outCcd = np.array([-1], dtype=np.int)
+    outColPix = np.array([-1.0], dtype=np.float)
+    outRowPix = np.array([-1.0], dtype=np.float)
+    for i, curTarg in enumerate(starList):
+        curTarg = doRoughPosition(curTarg, scinfo)
+        # Look to see if target was in any sectors
+        if len(curTarg.sectors)>0:
+            uniqSectors = np.unique(curTarg.sectors)
+            starRas = np.array([curTarg.ra])
+            starDecs =  np.array([curTarg.dec])
+            for curSec in uniqSectors:
+                idxSec = np.where(scinfo.sectors == curSec)[0][0]
+                starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
+                           starRas, starDecs)
+                for jj, cam in enumerate(starInCam):
+                    # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
+                    xUse = starCcdXs[jj] + 45.0
+                    yUse = starCcdYs[jj] + 1.0
+                    xMin = 44.0
+                    maxCoord = 2049
+                    if combinedFits:
+                        xUse = starFitsXs[jj]
+                        yUse = starFitsYs[jj]
+                        maxCoord = 4097
+                        xMin = 0.0
+                    if noCollateral:
+                        xUse = starCcdXs[jj]
+                        yUse = starCcdYs[jj]
+                        xMin = 0.0
+                    if xUse>xMin and yUse>0 and xUse<maxCoord and yUse<maxCoord:
+                        if findAny==False:
+                            outID[0] = curTarg.ticid
+                            outEclipLong[0] = curTarg.eclipLong
+                            outEclipLat[0] = curTarg.eclipLat
+                            outSec[0] = curSec
+                            outCam[0] = starInCam[jj]
+                            outCcd[0] = starCcdNum[jj]
+                            outColPix[0] = xUse
+                            outRowPix[0] = yUse
+                            findAny=True
+                        else:
+                            outID = np.append(outID, curTarg.ticid)
+                            outEclipLong = np.append(outEclipLong, curTarg.eclipLong)
+                            outEclipLat = np.append(outEclipLat, curTarg.eclipLat)
+                            outSec = np.append(outSec, curSec)
+                            outCam = np.append(outCam, starInCam[jj])
+                            outCcd = np.append(outCcd, starCcdNum[jj])
+                            outColPix = np.append(outColPix, xUse)
+                            outRowPix = np.append(outRowPix, yUse)
+    return outID, outEclipLong, outEclipLat, outSec, outCam, outCcd, \
+            outColPix, outRowPix, scinfo
+
     
 if __name__ == '__main__':
     # Parse the command line arguments
@@ -957,9 +1039,9 @@ if __name__ == '__main__':
 #            self.reverse = [2,1,2,2092.0,1.0]
 #    args = test_arg()
     
-    # At least one Mode -t -c -f must have been specified
+    # At least one Mode -t -c -f -r -n must have been specified
     if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None) and (args.name is None):
-        print('You must specify one and only one mode -t, -c, -f, -r')
+        print('You must specify one and only one mode -t, -c, -f, -r, -n')
         print('`python stars2px.py -h\' for help')
         sys.exit(1)
 
@@ -975,13 +1057,17 @@ if __name__ == '__main__':
             nTarg = 1
             starTics = np.array([0], dtype=np.int32)
 
-            # Name resolve
-            coordinate = SkyCoord.from_name(args.name[0])
-            print("Coordinates for {0}: ({1}, {2})"
+            # Name resolve  in try except  for detecting problem
+            try:
+                coordinate = SkyCoord.from_name(args.name[0])
+                print("Coordinates for {0}: ({1}, {2})"
                   .format(args.name[0], coordinate.ra.degree,
                           coordinate.dec.degree))
-            starRas = np.array([coordinate.ra.degree], dtype=np.float)
-            starDecs = np.array([coordinate.dec.degree], dtype=np.float)
+                starRas = np.array([coordinate.ra.degree], dtype=np.float)
+                starDecs = np.array([coordinate.dec.degree], dtype=np.float)
+            except:
+                print("Could not resolve: {0}".format(args.name[0]))
+                sys.exit(1)
         else:
             if not (args.inputFile is None): # Check for input file list next
                 # Read in star positions in input
