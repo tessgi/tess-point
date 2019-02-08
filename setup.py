@@ -15,8 +15,7 @@ setuptools.setup(
     license="MIT",
     install_requires=[
         'numpy',
-        'astropy<=2.0.7;python_version<="2.7"',
-        'astropy;python_version>"2.7"',
+        'astropy',
         'scipy'
     ],
     classifiers=[
