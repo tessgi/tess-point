@@ -18,7 +18,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.3.0
+VERSION: 0.3.1
 
 WHAT'S NEW:
     -Query by name using Sesame by Brett Morris

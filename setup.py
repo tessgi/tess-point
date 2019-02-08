@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tess-point",
-    version="0.2.0",
+    version="0.3.1",
     author="Christopher J. Burke",
     author_email="cjburke@mit.edu",
     description="Determine pixel coordinates for TESS targets",
@@ -13,6 +13,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/christopherburke/tess-point",
     license="MIT",
+    install_requires=[
+        'numpy',
+        'astropy<=2.0.7;python_version<="2.7"',
+        'astropy;python_version>"2.7"',
+        'scipy'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
