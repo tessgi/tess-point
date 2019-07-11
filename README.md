@@ -40,7 +40,7 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 - TESS Year 2 (Sectors 14-26) potential pointings added. Assumes unshift Sector 16 pointing.
 
 ### NOTES
-- Pointing table is for TESS Year 1 & 2 (Sectors 1-26).
+- Pointing table is for TESS Year 1 and 2 (Sectors 1-26).
 
 - Pointing prediction algorithm is same as employed internally at MIT for target management.  However, hard coded focal plane geometry is not up to date and may contain inaccurate results.
 
