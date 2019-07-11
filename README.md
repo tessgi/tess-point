@@ -6,10 +6,6 @@ Convert target coordinates given in Right Ascension and Declination to TESS dete
 ### Install
 `pip install tess-point`
 
-- Upgrading
-`pip install --upgrade tess-point`
-
-
 ### Examples
 - Display command line arguments and features
 
