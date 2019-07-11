@@ -1,10 +1,13 @@
 # TESS-Point
 High Precision TESS pointing tool.
 
-Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the first 13 TESS observing sectors (Year 1) focused on the southern ecliptic plane.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
+Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) focused on the southern and northern ecliptic planes.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
 
 ### Install
-pip install tess-point
+`pip install tess-point`
+
+- Upgrading
+`pip install --upgrade tess-point`
 
 
 ### Examples
@@ -35,18 +38,13 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.
 
-### VERSION: 0.3.2
+### VERSION: 0.3.3
 
 ### WHAT'S NEW:
-- No Bug fixes to primary functionality.  This version adds some features
-
-- Query by name using Sesame by Brett Morris
-
-- Wrapper function implemented tess_stars2px_function_entry() with an example program, example_use_tess_stars2py_byfunction.py for using tess_stars2px in your own python program rather than on the command line.
-
+- TESS Year 2 (Sectors 14-26) potential pointings added. Assumes unshift Sector 16 pointing.
 
 ### NOTES
-- Pointing table is only for TESS Year 1 (Sectors 1-13) in Southern Ecliptic.
+- Pointing table is for TESS Year 1 & 2 (Sectors 1-26).
 
 - Pointing prediction algorithm is same as employed internally at MIT for target management.  However, hard coded focal plane geometry is not up to date and may contain inaccurate results.
 
@@ -67,6 +65,10 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 - Hard coded focal plane geometry parameters from rfpg5_c1kb.txt
 
 ### OLD NOTES:
+- Query by name using Sesame by Brett Morris
+
+- Wrapper function implemented tess_stars2px_function_entry() with an example program, example_use_tess_stars2py_byfunction.py for using tess_stars2px in your own python program rather than on the command line.
+
 - Pre filter step previously depended on the current mission profile of pointings aligned with ecliptic coordinates to work.  The pre filter step was rewritten in order to support mission planning not tied to ecliptic alignment.  End users should not see any change in results with this change.  However, local copies can be modified for arbitrary spacecraft ra,dec, roll and get same functionality.
 
 - A reverse option is added to find the ra and dec for a given sector, camera, ccd, colpix, rowpix.  This is most useful for planning arbitrary pointing boundaries and internal use to identify targets on uncalibrated images that don't have WCS info available.  For precision work one should defer to WCS information on calibrated FFIs rather than this tool.  The reverse is a brute force 'hack' that uses a minimizer on the forward direction code to find ra and dec.  In principle it is possible to reverse the matrix transforms to get the ra and dec directly, but I chose this less efficient method for expediency.  The minimizer is not guaranteed to converge at correct answer.  The current method is a slow way to do this.
@@ -76,8 +78,7 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 ### TODOS:
 1. Check python 2.7 compatability
 2. Include approximate or detailed velocity aberration corrections
-3. Provide estimated pointing table for TESS Year 2
-4afafar. Time dependent Focal plane geometry
+3. Time dependent Focal plane geometry
 
 ### DEPENDENCIES:
 - python 3+
