@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tess-point",
-    version="0.3.3",
+    version="0.3.4",
     author="Christopher J. Burke",
     author_email="cjburke@mit.edu",
     description="Determine pixel coordinates for TESS targets",

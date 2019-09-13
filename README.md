@@ -34,10 +34,10 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.
 
-### VERSION: 0.3.3
+### VERSION: 0.3.4
 
 ### WHAT'S NEW:
-- TESS Year 2 (Sectors 14-26) potential pointings added. Assumes unshift Sector 16 pointing.
+- TESS Year 2 (Sectors 14-26) potential pointings added.
 
 ### NOTES
 - Pointing table is for TESS Year 1 and 2 (Sectors 1-26).
