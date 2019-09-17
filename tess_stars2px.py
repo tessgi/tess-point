@@ -19,7 +19,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.3.5
+VERSION: 0.3.6
 
 WHAT'S NEW:
     -Comment shenanigans fixed
@@ -1047,22 +1047,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
-    class test_arg:
-        def __init__(self):
+#    class test_arg:
+#        def __init__(self):
 #            #self.ticId = 281541555
-            self.ticId = None
+#            self.ticId = None
 #            self.coord = None
-            self.name = None
-            self.coord = [330.6803807390524, 42.27777178]
-            self.inputFile = None
-            self.sector = None
-            self.fpgParameterFiles = None
-            self.outputFile = None
-            self.combinedFits = False
-            self.noCollateral = False
-            self.reverse = None
+#            self.name = ['KIC 6443093']
+#            self.coord = [330.6803807390524, 42.27777178]
+#            self.inputFile = None
+#            self.sector = None
+#            self.fpgParameterFiles = None
+#            self.outputFile = None
+#            self.combinedFits = False
+#            self.noCollateral = False
+#            self.reverse = None
 #            self.reverse = [2,1,2,2092.0,1.0]
-    args = test_arg()
+#    args = test_arg()
     
     # At least one Mode -t -c -f -r -n must have been specified
     if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None) and (args.name is None):
@@ -1160,7 +1160,8 @@ if __name__ == '__main__':
                         xUse = starCcdXs[jj] + 45.0
                         yUse = starCcdYs[jj] + 1.0
                         xMin = 44.0
-                        maxCoord = 2049
+                        ymaxCoord = 2049
+                        xmaxCoord = 2093
                         if args.combinedFits:
                             xUse = starFitsXs[jj]
                             yUse = starFitsYs[jj]
@@ -1170,7 +1171,7 @@ if __name__ == '__main__':
                             xUse = starCcdXs[jj]
                             yUse = starCcdYs[jj]
                             xMin = 0.0
-                        if xUse>xMin and yUse>0 and xUse<maxCoord and yUse<maxCoord:
+                        if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
                             findAny=True
                             strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
                                curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\

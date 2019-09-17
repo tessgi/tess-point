@@ -32,9 +32,9 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 - tess_stars2px can be called from a python program.  See example_use_tess_strs2py_byfunction.py for this way to use tess_stars2px
 
 ### AUTHORS
-Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.
+Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago).
 
-### VERSION: 0.3.5
+### VERSION: 0.3.6
 
 ### WHAT'S NEW:
 - Comments added broke previous version.  Fixed.
