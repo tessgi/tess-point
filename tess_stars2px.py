@@ -19,9 +19,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.3.6
+VERSION: 0.3.7
 
 WHAT'S NEW:
+    -Single sector only argument range needed updating to allow for North pointings
     -Comment shenanigans fixed
     -Updated Sector 16 pointing to higher ecliptic scattered light avoidance position
     
@@ -1032,7 +1033,7 @@ if __name__ == '__main__':
                         help="Filename for input Target TIC [int]; RA[deg]; Dec[dec]; in white space delimited text file Column 1, 2, and 3 respectively")
     parser.add_argument("-o", "--outputFile", type=argparse.FileType('w'), \
                         help="Optional filename for output.  Default is output to stdout ")
-    parser.add_argument("-s", "--sector", type=int, choices=range(1,14),\
+    parser.add_argument("-s", "--sector", type=int, choices=range(1,26),\
                         help="Search a single sector Number [int]")
     parser.add_argument("-x", "--combinedFits", action='store_true', \
                         help="Output detector pixel coordinates for the 'Big' multi-detector combined fits file format")
