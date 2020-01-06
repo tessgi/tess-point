@@ -1,7 +1,7 @@
 # TESS-Point
 High Precision TESS pointing tool.
 
-Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) focused on the southern and northern ecliptic planes.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
+Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3 up to Sectors 39.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
 
 ### Install
 `pip install tess-point`
@@ -34,16 +34,13 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago).
 
-### VERSION: 0.3.7
+### VERSION: 0.3.8
 
 ### WHAT'S NEW:
--Single sector only argument range needed updating to allow for North pointings
-
-- Comments added broke previous version.  Fixed.
-- TESS Year 2 (Sectors 14-26) potential pointings added.
+-TESS Year 1-3 pointings
 
 ### NOTES
-- Pointing table is for TESS Year 1 and 2 (Sectors 1-26).
+- Pointing table is for TESS Year 1 - 3(Sectors 1-39) .
 
 - Pointing prediction algorithm is same as employed internally at MIT for target management.  However, hard coded focal plane geometry is not up to date and may contain inaccurate results.
 
@@ -75,9 +72,8 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 
 
 ### TODOS:
-1. Check python 2.7 compatability
-2. Include approximate or detailed velocity aberration corrections
-3. Time dependent Focal plane geometry
+1. Include approximate or detailed velocity aberration corrections
+2. Time dependent Focal plane geometry
 
 ### DEPENDENCIES:
 - python 3+
