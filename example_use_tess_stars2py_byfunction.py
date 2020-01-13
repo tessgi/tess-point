@@ -24,7 +24,8 @@ if __name__ == '__main__':
         # keeping track of target in the output because
         # for a given target it is not known ahead of time how many
         # output entries a target will have.  Thus the user
-        # should make sure to  
+        # should make sure to match the output ticid (outID)
+        #  with the ticid they are using
     outID, outEclipLong, outEclipLat, outSec, outCam, outCcd, \
             outColPix, outRowPix, scinfo = tess_stars2px_function_entry(
                     ticid, ra, dec)

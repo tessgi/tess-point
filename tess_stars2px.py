@@ -19,9 +19,11 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.3.8
+VERSION: 0.3.9
 
 WHAT'S NEW:
+    -Missing check on last sector 39 fixed
+    -Fixed pixel limits in function entry
     -Year 3 Sectors 27-39 now provided
     -Updated Sector 24-26 pointing to higher ecliptic scattered light avoidance position
     
@@ -723,7 +725,9 @@ class Levine_FPG():
         
 class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
-    sectors = np.arange(1,39, dtype=np.int)
+    # When adding sectors the arg2 needs to end +1 from sector
+    #  due to the np.arange function ending at arg2-1
+    sectors = np.arange(1,40, dtype=np.int)
 
     # Arrays are borken up into the following sectors:
     # Line 1: Sectors 1-5
@@ -993,17 +997,19 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
                     xUse = starCcdXs[jj] + 45.0
                     yUse = starCcdYs[jj] + 1.0
                     xMin = 44.0
-                    maxCoord = 2049
+                    ymaxCoord = 2049
+                    xmaxCoord = 2093
                     if combinedFits:
                         xUse = starFitsXs[jj]
                         yUse = starFitsYs[jj]
-                        maxCoord = 4097
+                        xmaxCoord = 4097
+                        ymaxCoord = 4097
                         xMin = 0.0
                     if noCollateral:
                         xUse = starCcdXs[jj]
                         yUse = starCcdYs[jj]
                         xMin = 0.0
-                    if xUse>xMin and yUse>0 and xUse<maxCoord and yUse<maxCoord:
+                    if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
                         if findAny==False:
                             outID[0] = curTarg.ticid
                             outEclipLong[0] = curTarg.eclipLong
@@ -1171,7 +1177,8 @@ if __name__ == '__main__':
                         if args.combinedFits:
                             xUse = starFitsXs[jj]
                             yUse = starFitsYs[jj]
-                            maxCoord = 4097
+                            xmaxCoord = 4097
+                            ymaxCoord = 4097
                             xMin = 0.0
                         if args.noCollateral:
                             xUse = starCcdXs[jj]
