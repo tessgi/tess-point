@@ -19,9 +19,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.3.9
+VERSION: 0.4.0
 
 WHAT'S NEW:
+    -***FIXED: TIC ids that overflow 32bit integers were not being resolved correctly.  Now Fixed by using 64 bit integers
     -Missing check on last sector 39 fixed
     -Fixed pixel limits in function entry
     -Year 3 Sectors 27-39 now provided
@@ -1087,12 +1088,12 @@ if __name__ == '__main__':
         # Do single coords first
         if args.coord is not None and args.name is None:
             nTarg = 1
-            starTics = np.array([0], dtype=np.int32)
+            starTics = np.array([0], dtype=np.int64)
             starRas = np.array([args.coord[0]], dtype=np.float)
             starDecs = np.array([args.coord[1]], dtype=np.float)
         elif args.coord is None and args.name is not None:
             nTarg = 1
-            starTics = np.array([0], dtype=np.int32)
+            starTics = np.array([0], dtype=np.int64)
 
             # Name resolve  in try except  for detecting problem
             try:
@@ -1117,7 +1118,7 @@ if __name__ == '__main__':
             else:
                 # Must have requested MAST query with TIC ID
                 # Make a list of TICs using strings
-                starTics = np.array([args.ticId], dtype=np.int32)
+                starTics = np.array([args.ticId], dtype=np.int64)
                 ticStringList = ['{0:d}'.format(x) for x in starTics]    
                 # Setup mast query
                 request = {'service':'Mast.Catalogs.Filtered.Tic', \
