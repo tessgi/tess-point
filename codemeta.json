@@ -1,0 +1,134 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/MIT",
+    "codeRepository": "https://github.com/christopherburke/tess-point",
+    "dateCreated": "2018-11-13",
+    "datePublished": "2018-11-13",
+    "dateModified": "2020-02-24",
+    "downloadUrl": "https://github.com/christopherburke/tess-point/archive/v0.4.0.tar.gz",
+    "name": "tess-point",
+    "version": "0.4.0",
+    "description": "Tess-point converts astronomical target coordinates given in right ascension and declination to detector pixel coordinates for the MIT-led NASA Transiting Exoplanet Survey Satellite (TESS) spacecraft. The program can also provide detector pixel coordinates for a star by TESS input catalog identifier number and common astronomical name. Tess-point outputs the observing sector number, camera number, detector number, and pixel column and row. Original programming in C and focal plane geometry solutions by Alan Levine (MIT). This python translation by Christopher J. Burke (MIT)",
+    "applicationCategory": "Astronomy",
+    "developmentStatus": "active",
+    "funder": {
+        "@type": "Organization",
+        "name": "MIT and NASA"
+    },
+    "keywords": [
+        "astronomy",
+        "coordinates",
+        "TESS",
+        "NASA"
+    ],
+    "programmingLanguage": [
+        "Python"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-7754-9486",
+            "givenName": "Christopher J.",
+            "familyName": "Burke",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "MIT"
+            }
+        },
+        {
+            "@type": "Person",
+            "givenName": "Alan",
+            "familyName": "Levine",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "MIT"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-9113-7162",
+            "givenName": "Michael",
+            "familyName": "Fausnaugh",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "MIT"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-6763-6562",
+            "givenName": "Roland",
+            "familyName": "Vanderspek",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "MIT"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-7139-2724",
+            "givenName": "Thomas",
+            "familyName": "Barclay",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "NASA GSFC; Univ. of Maryland Baltimore County"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-2990-7613",
+            "givenName": "Jessica E.",
+            "familyName": "Libby-Roberts",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. of Colorado"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0003-2528-3409",
+            "givenName": "Brett",
+            "familyName": "Morris",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. of Washington"
+            }
+        },
+        {
+            "@type": "Person",
+            "givenName": "Brigitta",
+            "familyName": "Sipocz",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. of Washington"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-8852-499X",
+            "givenName": "Martin",
+            "familyName": "Owens"
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-9464-8101",
+            "givenName": "Adina D.",
+            "familyName": "Feinstein",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Univ. of Chicago; NSF Graduate Research Fellow"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-5121-5560",
+            "givenName": "Joao",
+            "familyName": "Camacho",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "Institute of Astrophysics and Space Sciences; Univ. of Porto"
+            }
+        }
+    ]
+}
