@@ -19,7 +19,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
 
-VERSION: 0.4.0
+VERSION: 0.4.1
 
 WHAT'S NEW:
     -***FIXED: TIC ids that overflow 32bit integers were not being resolved correctly.  Now Fixed by using 64 bit integers
@@ -974,7 +974,7 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     # Make rough determination as to which pointing camera combos are worth
     # Checking in detail and then do detailed checking
     findAny=False
-    outID = np.array([-1], dtype=np.int)
+    outID = np.array([-1], dtype=np.int64)
     outEclipLong = np.array([-1.0], dtype=np.float)
     outEclipLat = np.array([-1.0], dtype=np.float)
     outSec = np.array([-1], dtype=np.int)
