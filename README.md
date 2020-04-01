@@ -38,8 +38,15 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 
 ### WHAT'S NEW:
 -TIC IDs that overflow 32bit integers is fixed.
+
 -TESS Year 1-3 pointings
+
 -Bug fixes from adding new pointings
+
+### CITATION:
+A citation for tess-point is available through the [Astrophysics Source Code Library](http://www.ascl.net/2003.001) entry. More complete BibTeX at bottom of page.
+
+Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Roberts, J. E., Morris, B., Sipocz, B., Owens, M., Feinstein, A. D., Camacho, J., 2020, 0.4.1, Astrophysics Source Code Library, record ascl:2003:001
 
 ### NOTES
 - Pointing table is for TESS Year 1 - 3(Sectors 1-39) .
@@ -95,3 +102,21 @@ In summary, the code begins with a space craft bore site pointing in RA, Dec, an
 3. git add, commit, push
 4. upload to PyPI - python setup.py sdist upload -r pypi
 5. Make release on github
+
+### BibTeX
+
+```
+@MISC{2020ascl.soft03001B,
+author = {{Burke}, C.~J. and {Levine}, A. and {Fausnaugh}, M. and {Vanderspek}, R. and {Barclay}, T. and {Libby-Roberts}, J.~E. and {Morris}, B. and {Sipocz}, B. and {Owens}, M. and {Feinstein}, A.~D. and {Camacho}, J.
+},
+title = "{TESS-Point: High precision TESS pointing tool}",
+keywords = {Software },
+howpublished = {Astrophysics Source Code Library},
+year = 2020,
+month = mar,
+archivePrefix = "ascl",
+eprint = {2003.001},
+adsurl = {http://adsabs.harvard.edu/abs/2020ascl.soft03001B},
+adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
