@@ -34,9 +34,12 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago).
 
-### VERSION: 0.4.1
+### VERSION: 0.4.2
 
 ### WHAT'S NEW:
+
+-Proxy Support for proxy enabled networks
+
 -TIC IDs that overflow 32bit integers is fixed.
 
 -TESS Year 1-3 pointings

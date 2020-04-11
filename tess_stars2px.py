@@ -150,14 +150,17 @@ import json
 try: # Python 3.x
     from urllib.parse import quote as urlencode
     from urllib.request import urlretrieve
+    from urllib.parse import urlparse
 except ImportError:  # Python 2.x
     from urllib import pathname2url as urlencode
     from urllib import urlretrieve
+    from urlparse import urlparse
 try: # Python 3.x
     import http.client as httplib 
 except ImportError:  # Python 2.x
     import httplib
 import scipy.optimize as opt
+import base64
 
 
 class Levine_FPG():
@@ -902,10 +905,9 @@ def doRoughPosition(targinfo, scinfo):
     return targinfo
 
 ## [Mast Query]
-def mastQuery(request):
+def mastQuery(request,proxy_uri=None):
 
-    server='mast.stsci.edu'
-
+    host='mast.stsci.edu'
     # Grab Python Version 
     version = ".".join(map(str, sys.version_info[:3]))
 
@@ -919,7 +921,17 @@ def mastQuery(request):
     requestString = urlencode(requestString)
     
     # opening the https connection
-    conn = httplib.HTTPSConnection(server)
+    if None == proxy_uri:
+        conn = httplib.HTTPSConnection(host)
+    else:
+        port = 443
+        url = urlparse(proxy_uri)
+        conn = httplib.HTTPSConnection(url.hostname,url.port)
+
+        if url.username and url.password:
+            auth = '%s:%s' % (url.username, url.password)
+            headers['Proxy-Authorization'] = 'Basic ' + str(base64.b64encode(auth.encode())).replace("b'", "").replace("'", "")
+        conn.set_tunnel(host, port, headers)
 
     # Making the query
     conn.request("POST", "/api/v0/invoke", "request="+requestString, headers)
@@ -1057,6 +1069,8 @@ if __name__ == '__main__':
                         help="Do reverse search.  Return RA Dec for a given pixel position.  5 parameters sector cam ccd colpix rowpix")
     parser.add_argument("-n", "--name", nargs=1, type=str, \
                         help="Search for a target by resolving its name with SESAME")
+    parser.add_argument("-p", "--proxy_uri", nargs=1, type=str, \
+                        help="Use proxy e.g.\"http://<user>:<passwd>@<proxy_server>:<proxy_port>\" ")
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
@@ -1125,7 +1139,10 @@ if __name__ == '__main__':
                    'params':{'columns':'*', 'filters':[{ \
                             'paramName':'ID', 'values':ticStringList}]}, \
                     'format':'json', 'removenullcolumns':True}
-                headers, outString = mastQuery(request)
+                if args.proxy_uri is None:
+                    headers, outString = mastQuery(request)
+                else:
+                    headers, outString = mastQuery(request,args.proxy_uri[0])
                 outObject = json.loads(outString)
                 starRas = np.array([x['ra'] for x in outObject['data']])
                 starDecs = np.array([x['dec'] for x in outObject['data']])
