@@ -18,10 +18,12 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Testing by Thomas Barclay (NASA Goddard) &
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
+ Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.4.1
+VERSION: 0.4.2
 
 WHAT'S NEW:
+    -Proxy support 
     -***FIXED: TIC ids that overflow 32bit integers were not being resolved correctly.  Now Fixed by using 64 bit integers
     -Missing check on last sector 39 fixed
     -Fixed pixel limits in function entry
@@ -1057,7 +1059,7 @@ if __name__ == '__main__':
                         help="Filename for input Target TIC [int]; RA[deg]; Dec[dec]; in white space delimited text file Column 1, 2, and 3 respectively")
     parser.add_argument("-o", "--outputFile", type=argparse.FileType('w'), \
                         help="Optional filename for output.  Default is output to stdout ")
-    parser.add_argument("-s", "--sector", type=int, choices=range(1,39),\
+    parser.add_argument("-s", "--sector", type=int, choices=range(1,40),\
                         help="Search a single sector Number [int]")
     parser.add_argument("-x", "--combinedFits", action='store_true', \
                         help="Output detector pixel coordinates for the 'Big' multi-detector combined fits file format")
