@@ -20,9 +20,11 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.4.2
+VERSION: 0.4.3
 
 WHAT'S NEW:
+    -MUCH FASTER NOW - skipped rough estimate step which was much much slower
+         than just doing the matrix math for position.
     -Proxy support 
     -***FIXED: TIC ids that overflow 32bit integers were not being resolved correctly.  Now Fixed by using 64 bit integers
     -Missing check on last sector 39 fixed
@@ -849,7 +851,7 @@ def get_radec_from_posangsep(ra, dec, pa, sep):
 
 class target_info:
     def __init__(self):
-        self.ticid = 0
+        self.ticid = int(0)
         self.ra = 0.0
         self.dec = 0.0
         self.eclipLong = 0.0
@@ -976,7 +978,6 @@ def fileOutputHeader(fp, fpgParmFileList=None):
 def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scInfo=None, \
                               fpgParmFileList=None, combinedFits=False,\
                               noCollateral=False):
-    
     if scInfo == None:
         # Instantiate Spacecraft position info
         scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
@@ -997,53 +998,49 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     outColPix = np.array([-1.0], dtype=np.float)
     outRowPix = np.array([-1.0], dtype=np.float)
     for i, curTarg in enumerate(starList):
-        curTarg = doRoughPosition(curTarg, scinfo)
-        # Look to see if target was in any sectors
-        if len(curTarg.sectors)>0:
-            uniqSectors = np.unique(curTarg.sectors)
-            starRas = np.array([curTarg.ra])
-            starDecs =  np.array([curTarg.dec])
-            for curSec in uniqSectors:
-                idxSec = np.where(scinfo.sectors == curSec)[0][0]
-                starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
-                           starRas, starDecs)
-                for jj, cam in enumerate(starInCam):
-                    # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
-                    xUse = starCcdXs[jj] + 45.0
-                    yUse = starCcdYs[jj] + 1.0
-                    xMin = 44.0
-                    ymaxCoord = 2049
-                    xmaxCoord = 2093
-                    if combinedFits:
-                        xUse = starFitsXs[jj]
-                        yUse = starFitsYs[jj]
-                        xmaxCoord = 4097
-                        ymaxCoord = 4097
-                        xMin = 0.0
-                    if noCollateral:
-                        xUse = starCcdXs[jj]
-                        yUse = starCcdYs[jj]
-                        xMin = 0.0
-                    if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
-                        if findAny==False:
-                            outID[0] = curTarg.ticid
-                            outEclipLong[0] = curTarg.eclipLong
-                            outEclipLat[0] = curTarg.eclipLat
-                            outSec[0] = curSec
-                            outCam[0] = starInCam[jj]
-                            outCcd[0] = starCcdNum[jj]
-                            outColPix[0] = xUse
-                            outRowPix[0] = yUse
-                            findAny=True
-                        else:
-                            outID = np.append(outID, curTarg.ticid)
-                            outEclipLong = np.append(outEclipLong, curTarg.eclipLong)
-                            outEclipLat = np.append(outEclipLat, curTarg.eclipLat)
-                            outSec = np.append(outSec, curSec)
-                            outCam = np.append(outCam, starInCam[jj])
-                            outCcd = np.append(outCcd, starCcdNum[jj])
-                            outColPix = np.append(outColPix, xUse)
-                            outRowPix = np.append(outRowPix, yUse)
+        starRas = np.array([curTarg.ra])
+        starDecs =  np.array([curTarg.dec])
+        for curSec in scinfo.sectors:
+            idxSec = np.where(scinfo.sectors == curSec)[0][0]
+            starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
+                       starRas, starDecs)
+            for jj, cam in enumerate(starInCam):
+                # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
+                xUse = starCcdXs[jj] + 45.0
+                yUse = starCcdYs[jj] + 1.0
+                xMin = 44.0
+                ymaxCoord = 2049
+                xmaxCoord = 2093
+                if combinedFits:
+                    xUse = starFitsXs[jj]
+                    yUse = starFitsYs[jj]
+                    xmaxCoord = 4097
+                    ymaxCoord = 4097
+                    xMin = 0.0
+                if noCollateral:
+                    xUse = starCcdXs[jj]
+                    yUse = starCcdYs[jj]
+                    xMin = 0.0
+                if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
+                    if findAny==False:
+                        outID[0] = int(curTarg.ticid)
+                        outEclipLong[0] = curTarg.eclipLong
+                        outEclipLat[0] = curTarg.eclipLat
+                        outSec[0] = curSec
+                        outCam[0] = starInCam[jj]
+                        outCcd[0] = starCcdNum[jj]
+                        outColPix[0] = xUse
+                        outRowPix[0] = yUse
+                        findAny=True
+                    else:
+                        outID = np.append(outID, int(curTarg.ticid))
+                        outEclipLong = np.append(outEclipLong, curTarg.eclipLong)
+                        outEclipLat = np.append(outEclipLat, curTarg.eclipLat)
+                        outSec = np.append(outSec, curSec)
+                        outCam = np.append(outCam, starInCam[jj])
+                        outCcd = np.append(outCcd, starCcdNum[jj])
+                        outColPix = np.append(outColPix, xUse)
+                        outRowPix = np.append(outRowPix, yUse)
     return outID, outEclipLong, outEclipLat, outSec, outCam, outCcd, \
             outColPix, outRowPix, scinfo
 
@@ -1176,43 +1173,38 @@ if __name__ == '__main__':
         # Checking in detail and then do detailed checking
         findAny=False
         for i, curTarg in enumerate(starList):
-            curTarg = doRoughPosition(curTarg, scinfo)
-            #print('Rough Position Done: {:d} {:d}'.format(i, curTarg.ticid))
-            # Look to see if target was in any sectors
-            if len(curTarg.sectors)>0:
-                uniqSectors = np.unique(curTarg.sectors)
-                starRas = np.array([curTarg.ra])
-                starDecs =  np.array([curTarg.dec])
-                for curSec in uniqSectors:
-                    idxSec = np.where(scinfo.sectors == curSec)[0][0]
-                    starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
-                               starRas, starDecs)
-                    for jj, cam in enumerate(starInCam):
-                        # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
-                        xUse = starCcdXs[jj] + 45.0
-                        yUse = starCcdYs[jj] + 1.0
-                        xMin = 44.0
-                        ymaxCoord = 2049
-                        xmaxCoord = 2093
-                        if args.combinedFits:
-                            xUse = starFitsXs[jj]
-                            yUse = starFitsYs[jj]
-                            xmaxCoord = 4097
-                            ymaxCoord = 4097
-                            xMin = 0.0
-                        if args.noCollateral:
-                            xUse = starCcdXs[jj]
-                            yUse = starCcdYs[jj]
-                            xMin = 0.0
-                        if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
-                            findAny=True
-                            strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
-                               curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
-                               curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
-                            if not (args.outputFile is None):
-                                args.outputFile.write('{:s}\n'.format(strout))
-                            else:
-                                print(strout)
+            starRas = np.array([curTarg.ra])
+            starDecs =  np.array([curTarg.dec])
+            for curSec in scinfo.sectors:
+                idxSec = np.where(scinfo.sectors == curSec)[0][0]
+                starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
+                           starRas, starDecs)
+                for jj, cam in enumerate(starInCam):
+                    # SPOC calibrated FFIs have 44 collateral pixels in x and are 1 based  
+                    xUse = starCcdXs[jj] + 45.0
+                    yUse = starCcdYs[jj] + 1.0
+                    xMin = 44.0
+                    ymaxCoord = 2049
+                    xmaxCoord = 2093
+                    if args.combinedFits:
+                        xUse = starFitsXs[jj]
+                        yUse = starFitsYs[jj]
+                        xmaxCoord = 4097
+                        ymaxCoord = 4097
+                        xMin = 0.0
+                    if args.noCollateral:
+                        xUse = starCcdXs[jj]
+                        yUse = starCcdYs[jj]
+                        xMin = 0.0
+                    if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
+                        findAny=True
+                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
+                           curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
+                           curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
+                        if not (args.outputFile is None):
+                            args.outputFile.write('{:s}\n'.format(strout))
+                        else:
+                            print(strout)
     
         if not findAny:
             print('No Target/s were found to be on detectors')
