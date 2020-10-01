@@ -34,19 +34,11 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra.
 
-### VERSION: 0.4.3
+### VERSION: 0.5.0
 
 ### WHAT'S NEW:
 
--Much faster running now.  Now skipping rough position check which was much slower than just applying the focal plane model which is all matrix math.
-
--Proxy Support for proxy enabled networks
-
--TIC IDs that overflow 32bit integers is fixed.
-
--TESS Year 1-3 pointings
-
--Bug fixes from adding new pointings
+- Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
 
 ### CITATION:
 A citation for tess-point is available through the [Astrophysics Source Code Library](http://www.ascl.net/2003.001) entry. More complete BibTeX at bottom of page.

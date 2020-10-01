@@ -20,9 +20,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.4.3
+VERSION: 0.5.0
 
 WHAT'S NEW:
+    -Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
     -MUCH FASTER NOW - skipped rough estimate step which was much much slower
          than just doing the matrix math for position.
     -Proxy support 
@@ -539,11 +540,59 @@ class Levine_FPG():
         xytmp[0] = -cphi*rfp0*rfp
         xytmp[1] = -sphi*rfp0*rfp
         return self.make_az_asym(icam, xytmp)
+
+    def fp_optics(self, icam, xyfp):
+        deg2rad = np.pi/ 180.0
+        xy = self.rev_az_asym(icam, xyfp)
+        rfp_times_rfp0 = np.sqrt(xy[0]*xy[0] + xy[1]*xy[1])
+        phirad = np.arctan2(-xy[1], -xy[0])
+        phideg = phirad / deg2rad
+        if (phideg < 0.0):
+            phideg += 360.0
+        thetarad = self.tanth_of_r(icam, rfp_times_rfp0)
+        thetadeg = thetarad / deg2rad
+        lng_deg = phideg
+        lat_deg = 90.0 - thetadeg
+        return lng_deg, lat_deg
+    
+    def r_of_tanth(self, icam, z):
+        tanth = np.tan(z)
+        rfp0 = self.optcon[icam][0]*tanth
+        noptcon = len(self.optcon[icam])
+        ii = np.arange(1, noptcon)
+        rfp = np.sum(self.optcon[icam][1:] * np.power(tanth, 2.0*(ii-1)))
+        return rfp0*rfp
         
+    def tanth_of_r(self, icam, rprp0):
+
+        if np.abs(rprp0) > 1.0e-10:
+            c0 = self.optcon[icam][0]
+            zi = np.arctan(np.sqrt(rprp0) / c0)
+            def minFunc(z, icam, rp):
+                rtmp = self.r_of_tanth(icam, z)
+                return (rtmp - rprp0)*(rtmp - rprp0)
+            
+            optResult = opt.minimize(minFunc, [zi], \
+                                     args=(icam, rprp0), method='Nelder-Mead', \
+                                     tol=1.0e-10, \
+                                     options={'maxiter':500})
+            #print(optResult)
+            return optResult.x[0]
+        else:
+            return 0.0
+
     def make_az_asym(self, icam, xy):
         xyp = self.xyrotate(self.asymang[icam], xy)
         xypa = np.zeros_like(xyp)
         xypa[0] = self.asymfac[icam] * xyp[0]
+        xypa[1] = xyp[1]
+        xyout = self.xyrotate(-self.asymang[icam], xypa)
+        return xyout
+
+    def rev_az_asym(self, icam, xyin):
+        xyp = self.xyrotate(self.asymang[icam], xyin)
+        xypa = np.zeros_like(xyp)
+        xypa[0] = xyp[0] / self.asymfac[icam]
         xypa[1] = xyp[1]
         xyout = self.xyrotate(-self.asymang[icam], xypa)
         return xyout
@@ -658,6 +707,19 @@ class Levine_FPG():
             fitpx[1] = ccdpx[1]
                 
         return ccdpx, fitpx
+
+    def pix_to_mm_single_ccd(self, icam, ccdpx, iccd):
+        """convert pixel to mm focal plane position
+        """
+        xyccd = np.zeros_like(ccdpx)
+        xyccd[0] = (ccdpx[0] + 0.5) * self.pixsz[icam][iccd][0]
+        xyccd[1] = (ccdpx[1] + 0.5) * self.pixsz[icam][iccd][1]
+        xyb = self.xyrotate(-self.ccdang[icam][iccd], xyccd)
+        xya = np.zeros_like(xyb)
+        xya[0] = xyb[0] + self.ccdxy0[icam][iccd][0]
+        xya[1] = xyb[1] + self.ccdxy0[icam][iccd][1]
+                
+        return xya
         
     def radec2pix(self, ras, decs):
         """ After the rotation matrices are defined to the actual
@@ -728,8 +790,22 @@ class Levine_FPG():
         fitsypos = fitpx[1]
         ccdxpos = ccdpx[0]
         ccdypos = ccdpx[1]
-        
         return ccdNum, fitsxpos, fitsypos, ccdxpos, ccdypos, lat
+        
+    def pix2radec_nocheck_single(self, cam, iccd, ccdpx):
+        """
+            Reverse the transform going from pixel coords to Ra & Dec
+        """
+        deg2rad = np.pi / 180.0
+        # Convert pixels to mm
+        xyfp = self.pix_to_mm_single_ccd(cam, ccdpx, iccd)
+        lng_deg, lat_deg = self.fp_optics(cam, xyfp)
+        vcam0, vcam1, vcam2 = self.sphereToCart(lng_deg, lat_deg)
+        vcam = np.array([vcam0, vcam1, vcam2], dtype=np.double)
+        curVec = np.matmul(np.transpose(self.rmat4[cam]), vcam)
+        ra, dec = self.cartToSphere(curVec)
+        
+        return ra/deg2rad, dec/deg2rad
         
 class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
@@ -1044,6 +1120,18 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     return outID, outEclipLong, outEclipLat, outSec, outCam, outCcd, \
             outColPix, outRowPix, scinfo
 
+def tess_stars2px_reverse_function_entry(trySector, camera, ccd, colWant, rowWant, scInfo=None, \
+                              fpgParmFileList=None):
+    if scInfo == None:
+        # Instantiate Spacecraft position info
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+    else:
+        scinfo = scInfo
+        
+    idxSec = np.where(scinfo.sectors == trySector)[0][0]
+    starRa, starDec = scinfo.fpgObjs[idxSec].pix2radec_nocheck_single(\
+                       camera-1, ccd-1, [colWant-45.0, rowWant-1.0])
+    return starRa, starDec, scinfo
     
 if __name__ == '__main__':
     # Parse the command line arguments
@@ -1198,7 +1286,7 @@ if __name__ == '__main__':
                         xMin = 0.0
                     if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
                         findAny=True
-                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:8.3f} | {:8.3f}'.format(\
+                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:11.6f} | {:11.6f}'.format(\
                            curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
                            curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
                         if not (args.outputFile is None):
@@ -1221,68 +1309,75 @@ if __name__ == '__main__':
         iCcd = int(args.reverse[2])-1
         colWnt = float(args.reverse[3])
         rowWnt = float(args.reverse[4])
-        camRa = scinfo.camRa[iCam,0]
-        camDec = scinfo.camDec[iCam,0]
-        def minFunc(x, iCam, iCcd, colWnt, rowWnt):
-            starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs, lat = scinfo.fpgObjs[0].radec2pix_nocheck_single(\
-                               x[0], x[1], iCam, iCcd)
-            xUse = starCcdXs + 45.0
-            yUse = starCcdYs + 1.0
-            # Penalize latitudes <70
-            latBad = 0.0
-            if lat < 70.0:
-                latBad = 70.0-lat
-            zUse = np.power(xUse-colWnt,2) + np.power(yUse-rowWnt,2) + np.power(latBad,4) + 1.0
-            return zUse
-        # Use an initial minimize with bounds to keep things from going haywire
-        # start with camera center
-        optResult = opt.minimize(minFunc, [camRa, camDec], \
-                                 args=(iCam, iCcd, colWnt, rowWnt), method='TNC', \
-                                 bounds=[[0.0,410.0],[-90.0, 90.0]], tol=1.0e-6, \
-                                 options={'maxiter':500})
-        newRa = optResult.x[0]
-        newDec = optResult.x[1]
-        #  Refine minimization to hopefully converge
-        optResult2 = opt.minimize(minFunc, [newRa, newDec], \
-                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
-                                 tol=1.0e-6, \
-                                 options={'maxiter':500})
-        newRa2 = optResult2.x[0]
-        newDec2 = optResult2.x[1]
-        minQuality = optResult2.fun
-        newRa2 = np.mod(newRa2, 360.0)
-        if np.abs(minQuality - 1.0) > 1.0e-4:
 
-            newRa = camRa + (newRa-camRa)/2.0
-            newDec = camDec + (newDec-camDec)/2.0
-            optResult3 = opt.minimize(minFunc, [newRa, newDec], \
-                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
-                                 tol=1.0e-6, \
-                                 options={'maxiter':500}) 
-            newRa3 = optResult3.x[0]
-            newDec3 = optResult3.x[1]
-            minQuality = optResult3.fun
-            newRa3 = np.mod(newRa3, 360.0)
-            if newDec3 < -90.0:
-                newDec3 = -90.0 + (-90.0 - newDec3)
-                newRa3 = newRa3 + 180.0
-                newRa3 = np.mod(newRa3, 360.0)
-            if newDec3 > 90.0:
-                newDec3 = 90.0 + (90.0 - newDec3)
-                newRa3 = newRa3 + 180.0
-                newRa3 = np.mod(newRa3, 360.0)
-                
-            print(newRa3, newDec3, minQuality)
-            
-        else:
-            if newDec2 < -90.0:
-                newDec2 = -90.0 + (-90.0 - newDec2)
-                newRa2 = newRa2 + 180.0
-                newRa2 = np.mod(newRa2, 360.0)
-            if newDec2 > 90.0:
-                newDec2 = 90.0 + (90.0 - newDec2)
-                newRa2 = newRa2 + 180.0
-                newRa2 = np.mod(newRa2, 360.0)
-
-            print(newRa2, newDec2, minQuality)
+        # Lets try going direct route with inversion of codes
+        starCcdXs = colWnt - 45.0
+        starCcdYs = rowWnt - 1.0
+        idxSec = np.where(scinfo.sectors == trySector)[0][0]
+        ra_deg, dec_deg = scinfo.fpgObjs[idxSec].pix2radec_nocheck_single(iCam, iCcd, [starCcdXs, starCcdYs])
+        print(ra_deg, ' ', dec_deg)
+        
+#  OLD Way with minimizer       
+#        def minFunc(x, iCam, iCcd, colWnt, rowWnt):
+#            starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs, lat = scinfo.fpgObjs[0].radec2pix_nocheck_single(\
+#                               x[0], x[1], iCam, iCcd)
+#            xUse = starCcdXs + 45.0
+#            yUse = starCcdYs + 1.0
+#            # Penalize latitudes <70
+#            latBad = 0.0
+#            if lat < 70.0:
+#                latBad = 70.0-lat
+#            zUse = np.power(xUse-colWnt,2) + np.power(yUse-rowWnt,2) + np.power(latBad,4) + 1.0
+#            return zUse
+#        # Use an initial minimize with bounds to keep things from going haywire
+#        # start with camera center
+#        optResult = opt.minimize(minFunc, [camRa, camDec], \
+#                                 args=(iCam, iCcd, colWnt, rowWnt), method='TNC', \
+#                                 bounds=[[0.0,410.0],[-90.0, 90.0]], tol=1.0e-6, \
+#                                 options={'maxiter':500})
+#        newRa = optResult.x[0]
+#        newDec = optResult.x[1]
+#        #  Refine minimization to hopefully converge
+#        optResult2 = opt.minimize(minFunc, [newRa, newDec], \
+#                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
+#                                 tol=1.0e-6, \
+#                                 options={'maxiter':500})
+#        newRa2 = optResult2.x[0]
+#        newDec2 = optResult2.x[1]
+#        minQuality = optResult2.fun
+#        newRa2 = np.mod(newRa2, 360.0)
+#        if np.abs(minQuality - 1.0) > 1.0e-4:
+#
+#            newRa = camRa + (newRa-camRa)/2.0
+#            newDec = camDec + (newDec-camDec)/2.0
+#            optResult3 = opt.minimize(minFunc, [newRa, newDec], \
+#                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
+#                                 tol=1.0e-6, \
+#                                 options={'maxiter':500}) 
+#            newRa3 = optResult3.x[0]
+#            newDec3 = optResult3.x[1]
+#            minQuality = optResult3.fun
+#            newRa3 = np.mod(newRa3, 360.0)
+#            if newDec3 < -90.0:
+#                newDec3 = -90.0 + (-90.0 - newDec3)
+#                newRa3 = newRa3 + 180.0
+#                newRa3 = np.mod(newRa3, 360.0)
+#            if newDec3 > 90.0:
+#                newDec3 = 90.0 + (90.0 - newDec3)
+#                newRa3 = newRa3 + 180.0
+#                newRa3 = np.mod(newRa3, 360.0)
+#                
+#            print(newRa3, newDec3, minQuality)
+#            
+#        else:
+#            if newDec2 < -90.0:
+#                newDec2 = -90.0 + (-90.0 - newDec2)
+#                newRa2 = newRa2 + 180.0
+#                newRa2 = np.mod(newRa2, 360.0)
+#            if newDec2 > 90.0:
+#                newDec2 = 90.0 + (90.0 - newDec2)
+#                newRa2 = newRa2 + 180.0
+#                newRa2 = np.mod(newRa2, 360.0)
+#
+#            print(newRa2, newDec2, minQuality)
         
