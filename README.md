@@ -34,9 +34,10 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra.
 
-### VERSION: 0.5.0
+### VERSION: 0.5.1
 
 ### WHAT'S NEW:
+- An approximate aberration correction is available with command line option.  Uses astropy GCRS Earth based frame which is close to TESS aberration
 
 - Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
 
@@ -50,7 +51,7 @@ Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Robe
 
 - Pointing prediction algorithm is same as employed internally at MIT for target management.  However, hard coded focal plane geometry is not up to date and may contain inaccurate results.
 
-- Testing shows pointing with this tool should be accurate to better than a pixel, but without including aberration effects, ones algorithm adopted for centroiding highly assymmetric point-spread function at edge of camera, and by-eye source location, a 2 pixel accuracy estimate is warranted.
+- Testing shows pointing with this tool should be accurate to better than a pixel, but without including aberration effects, ones algorithm adopted for centroiding highly assymmetric point-spread function at edge of camera, and by-eye source location, a 2 pixel accuracy estimate is warranted. Use aberration option for better accuracy
 
 - The output pixel coordinates assume the ds9 convention with 1,1 being the middle of the lower left corner.
 
@@ -58,7 +59,7 @@ Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Robe
 
 - See https://tess.mit.edu/observations/ for latest TESS pointing table
 
-- No corrections for velocity aberration are calculated. Potentially more accurate results can be obtained if the target RA and Declination coordinates have aberration effects applied.
+- No corrections for velocity aberration are calculated by default. Potentially more accurate results can be obtained if the target RA and Declination coordinates have aberration effects applied.  The aberrate option uses the astropy GCRS Earth based frame in order to approximate a TESS frame.  Earth has a velocity of 30km/s in solar system whereas TESS moves <4km/s relative to Earth, thus the GCRS correction should largely remove the 20arcsecond Earth induced aberration amplitude
 
 - For proposals to the TESS science office or directors discretionary time, please consult the TESS prediction webtool available at https://heasarc.gsfc.nasa.gov/cgi-bin/tess/webtess/wtv.py for official identification of 'observable' targets.  However, if your proposal depends on a single or few targets, then this tool is helpful to further refine the likelihood of the target being available on the detectors.
 
@@ -73,13 +74,11 @@ Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Robe
 
 - Pre filter step previously depended on the current mission profile of pointings aligned with ecliptic coordinates to work.  The pre filter step was rewritten in order to support mission planning not tied to ecliptic alignment.  End users should not see any change in results with this change.  However, local copies can be modified for arbitrary spacecraft ra,dec, roll and get same functionality.
 
-- A reverse option is added to find the ra and dec for a given sector, camera, ccd, colpix, rowpix.  This is most useful for planning arbitrary pointing boundaries and internal use to identify targets on uncalibrated images that don't have WCS info available.  For precision work one should defer to WCS information on calibrated FFIs rather than this tool.  The reverse is a brute force 'hack' that uses a minimizer on the forward direction code to find ra and dec.  In principle it is possible to reverse the matrix transforms to get the ra and dec directly, but I chose this less efficient method for expediency.  The minimizer is not guaranteed to converge at correct answer.  The current method is a slow way to do this.
-
+- A reverse option is added to find the ra and dec for a given sector, camera, ccd, colpix, rowpix.  This is most useful for planning arbitrary pointing boundaries and internal use to identify targets on uncalibrated images that don't have WCS info available.  For precision work one should defer to WCS information on calibrated FFIs rather than this tool.
 
 
 ### TODOS:
-1. Include approximate or detailed velocity aberration corrections
-2. Time dependent Focal plane geometry
+1. Time dependent Focal plane geometry
 
 ### DEPENDENCIES:
 - python 3+

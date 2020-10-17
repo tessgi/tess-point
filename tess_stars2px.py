@@ -20,9 +20,14 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.5.0
+VERSION: 0.5.1
 
 WHAT'S NEW:
+    -Now has option to perform an approximate aberration correction.
+        Uses astropy GCRS geocentric aberrated frame.  The Earth has velocity of 30km/s
+        whereas TESS has velocity relative to Earth of <4km/s.  Thus, correcting
+        for Earth aberration is most of the way there. Earth aberrates ~20 arcsec ~ 1 TESS pixel
+        Aberration is only done in forward ra,dec-> pix direction. No aberratuib correction is done for inverse pix->ra,dec direction
     -Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
     -MUCH FASTER NOW - skipped rough estimate step which was much much slower
          than just doing the matrix math for position.
@@ -46,7 +51,7 @@ NOTES:
         adopted for centroiding highly assymmetric point-spread function
         at edge of
         camera, and by-eye source location, a 2 pixel accuracy estimate is
-        warranted.
+        warranted. There is an approximate aberration option now available
     -The output pixel coordinates assume the ds9 convention with
         1,1 being the middle of the lower left corner.
     -No corrections for velocity aberration are calculated.
@@ -85,20 +90,10 @@ NOTES OLDER VERSIONS:
         targets on uncalibrated
         images that don't have WCS info available.  For precision work one
         shold defer to WCS information on calibrated FFIs rather than this tool.
-        The reverse is a brute force 'hack' that uses a minimizer on the
-        forward direction code to find ra and dec.  In principle it is possible
-        to reverse the matrix transforms to get the ra and dec directly, but
-        I chose this less efficient method for expediency.  The minimizer
-        is not guaranteed to converge at correct answer.  The current method
-        is a slow way to do this.
 
     
 TODOS:
-    -Include approximate or detailed velocity aberration corrections
     -Time dependent Focal plane geometry
-    -Do the reverse transormation go from pixel to RA and Dec in a direct
-        reverse transform manner rather than the current implementation
-        that does a brute force minimization from the forward ra,dec-->pix code
 
 DEPENDENCIES:
     python 3+
@@ -149,6 +144,8 @@ import numpy as np
 import os
 import argparse
 from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.time import Time
 import sys
 import datetime
 import json
@@ -859,7 +856,19 @@ class TESS_Spacecraft_Pointing_Data:
                       152.4006,143.7306,138.1685,139.3519,\
                       161.5986], dtype=np.float) 
 
+    midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611,\
+                         2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222,\
+                         2458582.760417, 2458610.774306, 2458640.031250, 2458668.618056,\
+                         2458697.336806, 2458724.934028, 2458751.649306, 2458777.722222,\
+                         2458803.440972, 2458828.958333, 2458856.388889, 2458884.916667, 2458913.565972,\
+                         2458941.829861, 2458969.263889, 2458996.909722, 2459023.107639,\
+                         2459049.145833, 2459075.166667, 2459102.319444, 2459130.201389,\
+                         2459158.854167, 2459186.940972, 2459215.427083, 2459241.979167,\
+                         2459268.579861, 2459295.301177, 2459322.577780, 2459349.854382,\
+                         2459377.130985], dtype=np.float)
+
     camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=np.float)
+    
 
     def __init__(self, trySector=None, fpgParmFileList=None):
         # Convert S/C boresite pointings to ecliptic coords for each camera
@@ -870,6 +879,7 @@ class TESS_Spacecraft_Pointing_Data:
             self.ras = self.ras[idx]
             self.decs = self.decs[idx]
             self.rolls = self.rolls[idx]
+            self.midtimes = self.midtimes[idx]
         nPoints = len(self.sectors)
         self.camRa = np.zeros((4, nPoints), dtype=np.float)
         self.camDec = np.zeros((4, nPoints), dtype=np.float)
@@ -1053,7 +1063,7 @@ def fileOutputHeader(fp, fpgParmFileList=None):
 
 def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scInfo=None, \
                               fpgParmFileList=None, combinedFits=False,\
-                              noCollateral=False):
+                              noCollateral=False, aberrate=False):
     if scInfo == None:
         # Instantiate Spacecraft position info
         scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
@@ -1078,6 +1088,21 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
         starDecs =  np.array([curTarg.dec])
         for curSec in scinfo.sectors:
             idxSec = np.where(scinfo.sectors == curSec)[0][0]
+            # Apply an approximate aberration correction
+            if aberrate:
+                useTime = Time(scinfo.midtimes[idxSec], format='jd')
+                # Make coordinate object in ICRS coordinates
+                ccat = SkyCoord(ra=starRas * u.deg,
+                                 dec=starDecs * u.deg,
+                                 obstime=useTime, frame='icrs')
+                # convert to Geocentric aberrated coordinates
+                # This is only an approximation to TESS
+                #  because TESS orbits Earth and has 
+                #  velocity <=4km/s relative to Earth whereas Earth is 30km/s
+                cgcrs = ccat.transform_to('gcrs')
+                starRas = np.array(cgcrs.ra.degree)
+                starDecs = np.array(cgcrs.dec.degree)
+
             starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
                        starRas, starDecs)
             for jj, cam in enumerate(starInCam):
@@ -1158,6 +1183,8 @@ if __name__ == '__main__':
                         help="Search for a target by resolving its name with SESAME")
     parser.add_argument("-p", "--proxy_uri", nargs=1, type=str, \
                         help="Use proxy e.g.\"http://<user>:<passwd>@<proxy_server>:<proxy_port>\" ")
+    parser.add_argument("-a", "--aberrate", action='store_true',\
+                        help="Apply approximate aberration correction to input coordinates. Uses astropy GCRS coordinate frame to approximate TESS aberration")
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
@@ -1265,6 +1292,20 @@ if __name__ == '__main__':
             starDecs =  np.array([curTarg.dec])
             for curSec in scinfo.sectors:
                 idxSec = np.where(scinfo.sectors == curSec)[0][0]
+                # Apply an approximate aberration correction
+                if args.aberrate:
+                    useTime = Time(scinfo.midtimes[idxSec], format='jd')
+                    # Make coordinate object in ICRS coordinates
+                    ccat = SkyCoord(ra=starRas * u.deg,
+                                     dec=starDecs * u.deg,
+                                     obstime=useTime, frame='icrs')
+                    # convert to Geocentric aberrated coordinates
+                    # This is only an approximation to TESS
+                    #  because TESS orbits Earth and has 
+                    #  velocity <=4km/s relative to Earth whereas Earth is 30km/s
+                    cgcrs = ccat.transform_to('gcrs')
+                    starRas = np.array(cgcrs.ra.degree)
+                    starDecs = np.array(cgcrs.dec.degree)
                 starInCam, starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs = scinfo.fpgObjs[idxSec].radec2pix(\
                            starRas, starDecs)
                 for jj, cam in enumerate(starInCam):
