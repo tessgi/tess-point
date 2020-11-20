@@ -3,8 +3,9 @@ High Precision TESS pointing tool.
 
 Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3 up to Sectors 39.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
 
-### Install
+### Install or Upgrade
 `pip install tess-point`
+`pip install tess-point --upgrade`
 
 ### Examples
 - Display command line arguments and features
@@ -34,9 +35,10 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra.
 
-### VERSION: 0.5.1
+### VERSION: 0.6.0
 
 ### WHAT'S NEW:
+- Year 4 pointings for Sectors 40-55 now available
 - An approximate aberration correction is available with command line option.  Uses astropy GCRS Earth based frame which is close to TESS aberration
 
 - Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
@@ -47,9 +49,7 @@ A citation for tess-point is available through the [Astrophysics Source Code Lib
 Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Roberts, J. E., Morris, B., Sipocz, B., Owens, M., Feinstein, A. D., Camacho, J., 2020, 0.4.1, Astrophysics Source Code Library, record ascl:2003:001
 
 ### NOTES
-- Pointing table is for TESS Year 1 - 3(Sectors 1-39) .
-
-- Pointing prediction algorithm is same as employed internally at MIT for target management.  However, hard coded focal plane geometry is not up to date and may contain inaccurate results.
+- Pointing table is for TESS Year 1 - 4(Sectors 1-55) .
 
 - Testing shows pointing with this tool should be accurate to better than a pixel, but without including aberration effects, ones algorithm adopted for centroiding highly assymmetric point-spread function at edge of camera, and by-eye source location, a 2 pixel accuracy estimate is warranted. Use aberration option for better accuracy
 

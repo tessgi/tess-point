@@ -3,7 +3,7 @@
 tess_stars2px.py - High precision TESS pointing tool.
 Convert target coordinates given in Right Ascension and Declination to
 TESS detector pixel coordinates for the prime mission TESS observing 
-sectors (Year 1 & 2) and Extendend mission Year 3.
+sectors (Year 1 & 2) and Extendend mission Years 3-4.
 Can also query MAST to obtain detector
 pixel coordinates for a star by TIC ID only (must be online for this option).
 
@@ -20,9 +20,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.5.1
+VERSION: 0.6.0
 
 WHAT'S NEW:
+    -Year 4 Sectors 40-55 Now Available
     -Now has option to perform an approximate aberration correction.
         Uses astropy GCRS geocentric aberrated frame.  The Earth has velocity of 30km/s
         whereas TESS has velocity relative to Earth of <4km/s.  Thus, correcting
@@ -31,19 +32,13 @@ WHAT'S NEW:
     -Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
     -MUCH FASTER NOW - skipped rough estimate step which was much much slower
          than just doing the matrix math for position.
-    -Proxy support 
-    -***FIXED: TIC ids that overflow 32bit integers were not being resolved correctly.  Now Fixed by using 64 bit integers
-    -Missing check on last sector 39 fixed
-    -Fixed pixel limits in function entry
-    -Year 3 Sectors 27-39 now provided
-    -Updated Sector 24-26 pointing to higher ecliptic scattered light avoidance position
     
 
 NOTES:
-    -Pointing table is for TESS Year 1 - 3 (Sectors 1-39) in Southern Ecliptic
+    -Pointing table is for TESS Year 1 - 4 (Sectors 1-55) 
     -Pointing table is unofficial, and the pointings may change.
     -See https://tess.mit.edu/observations/ for latest TESS pointing table
-    -Pointing prediction algorithm is same as employed internally at MIT for
+    -Pointing prediction algorithm is similar to internally at MIT for
         target management.  However, hard coded focal plane geometry is not
         up to date and may contain inaccurate results.
     -Testing shows pointing with this tool should be accurate to better than
@@ -73,23 +68,6 @@ NOTES:
         is not available until the FFI files are released, whereas
         this code can predict positions in advance of data release.
      -Hard coded focal plane geometry parameters from rfpg5_c1kb.txt
-
-NOTES OLDER VERSIONS:
-    -Wrapper function implemented tess_stars2px_function_entry()
-     With an example in the readme for using tess_stars2px in a python program
-     rather than on the command line.
-    -Pre filter step previously depended on the current mission profile of 
-        pointings aligned with ecliptic coordinates to work.  The pre filter
-        step was rewritten in order to support mission planning not tied 
-        to ecliptic alignment.  End users should not see any change in 
-        results with this change.  However, local copies can be modified
-        for arbitrary spacecraft ra,dec, roll and get same functionality.
-    -A reverse option is added to find the ra and dec for a given 
-        sector, camera, ccd, colpix, rowpix.  This is most useful for 
-        planning arbitrary pointing boundaries and internal use to identify
-        targets on uncalibrated
-        images that don't have WCS info available.  For precision work one
-        shold defer to WCS information on calibrated FFIs rather than this tool.
 
     
 TODOS:
@@ -808,7 +786,7 @@ class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
     # When adding sectors the arg2 needs to end +1 from sector
     #  due to the np.arange function ending at arg2-1
-    sectors = np.arange(1,40, dtype=np.int)
+    sectors = np.arange(1,56, dtype=np.int)
 
     # Arrays are borken up into the following sectors:
     # Line 1: Sectors 1-5
@@ -821,6 +799,10 @@ class TESS_Spacecraft_Pointing_Data:
     # Line 8: Sectors 31-34
     # Line 9: Sectors 35-38
     # Line 10: Sectors 39
+    # Line 11: Sectors 40-43
+    # Line 12: S 44-47
+    # Line 13: S 48-51
+    # Line 14: S 52-55
     ### NOTE IF you add Sectors be sure to update the allowed range
     ### for sectors in argparse arguments!!!
     ras = np.array([352.6844,16.5571,36.3138,55.0070,73.5382, \
@@ -832,7 +814,11 @@ class TESS_Spacecraft_Pointing_Data:
                     326.8525,357.2944,18.9190,38.3564,\
                     57.6357,77.1891,96.5996,115.2951,\
                     133.2035,150.9497,170.2540,195.7176,\
-                    242.1981], dtype=np.float)
+                    242.1981, \
+                    273.0766, 277.6209, 13.0140, 49.5260, \
+                    89.6066, 130.2960, 168.3488, 143.3807,\
+                    179.4254, 202.6424, 221.8575, 239.4257, \
+                    266.3618, 270.8126, 290.1210, 307.8655], dtype=np.float)
             
     decs = np.array([-64.8531,-54.0160,-44.2590,-36.6420,-31.9349, \
                      -30.5839,-32.6344,-37.7370,-45.3044,\
@@ -843,7 +829,11 @@ class TESS_Spacecraft_Pointing_Data:
                      -72.4265,-63.0056,-52.8296,-43.3178,\
                      -35.7835,-31.3957,-30.7848,-33.7790,\
                      -39.6871,-47.7512,-57.3725,-67.8307,\
-                     -76.3969], dtype=np.float) 
+                     -76.3969, \
+                     61.7450, 62.7640, 6.3337, 18.9737,\
+                     24.1343, 19.0181, 5.7613, 73.1125, \
+                     62.1038, 50.9532, 41.7577, 35.2333, \
+                     61.8190, 61.5761, 32.6073, 37.6464], dtype=np.float) 
 
     rolls = np.array([-137.8468,-139.5665,-146.9616,-157.1698,-168.9483, \
                       178.6367,166.4476,155.3091,145.9163,\
@@ -854,7 +844,11 @@ class TESS_Spacecraft_Pointing_Data:
                       214.5061,222.5216,219.7970,212.0441,\
                       201.2334,188.6263,175.5369,163.1916,\
                       152.4006,143.7306,138.1685,139.3519,\
-                      161.5986], dtype=np.float) 
+                      161.5986,\
+                      14.1539, 37.2224, 292.8009, 284.9617,\
+                      270.1557, 255.0927, 247.0722, 327.1020,\
+                      317.4166, 321.3516, 329.7340, 339.8650,\
+                      343.1429, 3.6838, 13.4565, 24.5369], dtype=np.float) 
 
     midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611,\
                          2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222,\
@@ -865,7 +859,11 @@ class TESS_Spacecraft_Pointing_Data:
                          2459049.145833, 2459075.166667, 2459102.319444, 2459130.201389,\
                          2459158.854167, 2459186.940972, 2459215.427083, 2459241.979167,\
                          2459268.579861, 2459295.301177, 2459322.577780, 2459349.854382,\
-                         2459377.130985], dtype=np.float)
+                         2459377.130985,\
+                         2459404.407588, 2459431.684191, 2459458.960794, 2459486.237397,\
+                         2459513.514000, 2459540.790602, 2459568.067205, 2459595.343808,\
+                         2459622.620411, 2459649.897014, 2459677.173617, 2459704.450219,\
+                         2459731.726822, 2459759.003425, 2459786.280028, 2459813.556631], dtype=np.float)
 
     camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=np.float)
     
@@ -1169,7 +1167,7 @@ if __name__ == '__main__':
                         help="Filename for input Target TIC [int]; RA[deg]; Dec[dec]; in white space delimited text file Column 1, 2, and 3 respectively")
     parser.add_argument("-o", "--outputFile", type=argparse.FileType('w'), \
                         help="Optional filename for output.  Default is output to stdout ")
-    parser.add_argument("-s", "--sector", type=int, choices=range(1,40),\
+    parser.add_argument("-s", "--sector", type=int, choices=range(1,56),\
                         help="Search a single sector Number [int]")
     parser.add_argument("-x", "--combinedFits", action='store_true', \
                         help="Output detector pixel coordinates for the 'Big' multi-detector combined fits file format")
