@@ -1,10 +1,11 @@
 # TESS-Point
 High Precision TESS pointing tool.
 
-Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3 up to Sectors 39.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
+Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3-4 up to Sectors 55.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
 
 ### Install or Upgrade
 `pip install tess-point`
+
 `pip install tess-point --upgrade`
 
 ### Examples
