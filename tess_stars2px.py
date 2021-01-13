@@ -20,9 +20,13 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.6.0
+VERSION: 0.6.1
 
 WHAT'S NEW:
+    -Too close to edge Warning flag now output in column 11. If a target is within 6 pixels
+        of the edge of the science region (edgeWarn==1), then the target is unlikely
+        to be assigned a 2minute or 20s aperture. The science pixels range
+        in column from 45-2092 and row from 1-2048
     -Year 4 Sectors 40-55 Now Available
     -Now has option to perform an approximate aberration correction.
         Uses astropy GCRS geocentric aberrated frame.  The Earth has velocity of 30km/s
@@ -1278,7 +1282,7 @@ if __name__ == '__main__':
             fileOutputHeader(args.outputFile, fpgParmFileList=fpgParmFileList)
         else:
             # add single line header to stdout
-            print('# TIC     |   RA      |   Dec     | EclipticLong | EclipticLat | Sector | Camera | Ccd | ColPix | RowPix')
+            print('# TIC     |   RA      |   Dec     | EclipticLong | EclipticLat | Sector | Camera | Ccd | ColPix | RowPix | EdgeWarn')
         # Now make list of the star objects
         starList = make_target_objects(starTics, starRas, starDecs)
         #print('Finished converting coords to ecliptic')
@@ -1325,9 +1329,19 @@ if __name__ == '__main__':
                         xMin = 0.0
                     if xUse>xMin and yUse>0 and xUse<xmaxCoord and yUse<ymaxCoord:
                         findAny=True
-                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:11.6f} | {:11.6f}'.format(\
+                        edgeWarn = 0
+                        edgePix = 6
+                        if xUse<=(xMin+edgePix):
+                            edgeWarn = 1
+                        if xUse>=(xmaxCoord-edgePix):
+                            edgeWarn = 1
+                        if yUse<=edgePix:
+                            edgeWarn = 1
+                        if yUse>=(ymaxCoord-edgePix):
+                            edgeWarn = 1
+                        strout = '{:09d} | {:10.6f} | {:10.6f} | {:10.6f} | {:10.6f} | {:2d} | {:1d} | {:1d} | {:11.6f} | {:11.6f} | {:1d}'.format(\
                            curTarg.ticid, curTarg.ra, curTarg.dec, curTarg.eclipLong,\
-                           curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse)
+                           curTarg.eclipLat, curSec, starInCam[jj], starCcdNum[jj], xUse, yUse, edgeWarn)
                         if not (args.outputFile is None):
                             args.outputFile.write('{:s}\n'.format(strout))
                         else:
@@ -1354,7 +1368,7 @@ if __name__ == '__main__':
         starCcdYs = rowWnt - 1.0
         idxSec = np.where(scinfo.sectors == trySector)[0][0]
         ra_deg, dec_deg = scinfo.fpgObjs[idxSec].pix2radec_nocheck_single(iCam, iCcd, [starCcdXs, starCcdYs])
-        print(ra_deg, ' ', dec_deg)
+        print(ra_deg, dec_deg)
         
 #  OLD Way with minimizer       
 #        def minFunc(x, iCam, iCcd, colWnt, rowWnt):

@@ -36,9 +36,10 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra.
 
-### VERSION: 0.6.0
+### VERSION: 0.6.1
 
 ### WHAT'S NEW:
+- Too close to dge Warning flag now output in column. If a target is within 6 pixels of the edge of the science region (edgeWarn==1), then the target is unlikely to be assigned a 2minute or 20s aperture. The science pixels range in column from 45-2092 and row from 1-2048
 - Year 4 pointings for Sectors 40-55 now available
 - An approximate aberration correction is available with command line option.  Uses astropy GCRS Earth based frame which is close to TESS aberration
 
