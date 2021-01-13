@@ -39,7 +39,7 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 ### VERSION: 0.6.1
 
 ### WHAT'S NEW:
-- Too close to dge Warning flag now output in column. If a target is within 6 pixels of the edge of the science region (edgeWarn==1), then the target is unlikely to be assigned a 2minute or 20s aperture. The science pixels range in column from 45-2092 and row from 1-2048
+- Too close to edge Warning flag now output in column. If a target is within 6 pixels of the edge of the science region (edgeWarn==1), then the target is unlikely to be assigned a 2minute or 20s aperture. The science pixels range in column from 45-2092 and row from 1-2048
 - Year 4 pointings for Sectors 40-55 now available
 - An approximate aberration correction is available with command line option.  Uses astropy GCRS Earth based frame which is close to TESS aberration
 
