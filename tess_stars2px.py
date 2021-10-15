@@ -20,9 +20,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.6.1
+VERSION: 0.6.2
 
 WHAT'S NEW:
+    -Sector 46 field update 2021 Oct. 1
     -Too close to edge Warning flag now output in column 11. If a target is within 6 pixels
         of the edge of the science region (edgeWarn==1), then the target is unlikely
         to be assigned a 2minute or 20s aperture. The science pixels range
@@ -792,7 +793,7 @@ class TESS_Spacecraft_Pointing_Data:
     #  due to the np.arange function ending at arg2-1
     sectors = np.arange(1,56, dtype=np.int)
 
-    # Arrays are borken up into the following sectors:
+    # Arrays are broken up into the following sectors:
     # Line 1: Sectors 1-5
     # Line 2: Secotrs 6-9
     # Line 3: Sectors 10-13
@@ -820,7 +821,7 @@ class TESS_Spacecraft_Pointing_Data:
                     133.2035,150.9497,170.2540,195.7176,\
                     242.1981, \
                     273.0766, 277.6209, 13.0140, 49.5260, \
-                    89.6066, 130.2960, 168.3488, 143.3807,\
+                    89.6066, 130.2960, 157.6997, 143.3807,\
                     179.4254, 202.6424, 221.8575, 239.4257, \
                     266.3618, 270.8126, 290.1210, 307.8655], dtype=np.float)
             
@@ -835,7 +836,7 @@ class TESS_Spacecraft_Pointing_Data:
                      -39.6871,-47.7512,-57.3725,-67.8307,\
                      -76.3969, \
                      61.7450, 62.7640, 6.3337, 18.9737,\
-                     24.1343, 19.0181, 5.7613, 73.1125, \
+                     24.1343, 19.0181, 10.0922, 73.1125, \
                      62.1038, 50.9532, 41.7577, 35.2333, \
                      61.8190, 61.5761, 32.6073, 37.6464], dtype=np.float) 
 
@@ -850,7 +851,7 @@ class TESS_Spacecraft_Pointing_Data:
                       152.4006,143.7306,138.1685,139.3519,\
                       161.5986,\
                       14.1539, 37.2224, 292.8009, 284.9617,\
-                      270.1557, 255.0927, 247.0722, 327.1020,\
+                      270.1557, 255.0927, 248.4063, 327.1020,\
                       317.4166, 321.3516, 329.7340, 339.8650,\
                       343.1429, 3.6838, 13.4565, 24.5369], dtype=np.float) 
 
