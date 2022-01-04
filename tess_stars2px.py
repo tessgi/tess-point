@@ -20,9 +20,12 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.6.2
+VERSION: 0.6.3
 
 WHAT'S NEW:
+    -Bug correction for aberration. Only impacts if you were using
+         aberration flag WITHOUT the single sector. In other words,
+         does not affect users that did not use --aberrate or -aberrate with -s
     -Sector 46 field update 2021 Oct. 1
     -Too close to edge Warning flag now output in column 11. If a target is within 6 pixels
         of the edge of the science region (edgeWarn==1), then the target is unlikely
@@ -1087,9 +1090,9 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     outColPix = np.array([-1.0], dtype=np.float)
     outRowPix = np.array([-1.0], dtype=np.float)
     for i, curTarg in enumerate(starList):
-        starRas = np.array([curTarg.ra])
-        starDecs =  np.array([curTarg.dec])
         for curSec in scinfo.sectors:
+            starRas = np.array([curTarg.ra])
+            starDecs =  np.array([curTarg.dec])
             idxSec = np.where(scinfo.sectors == curSec)[0][0]
             # Apply an approximate aberration correction
             if aberrate:
@@ -1291,9 +1294,9 @@ if __name__ == '__main__':
         # Checking in detail and then do detailed checking
         findAny=False
         for i, curTarg in enumerate(starList):
-            starRas = np.array([curTarg.ra])
-            starDecs =  np.array([curTarg.dec])
             for curSec in scinfo.sectors:
+                starRas = np.array([curTarg.ra])
+                starDecs =  np.array([curTarg.dec])
                 idxSec = np.where(scinfo.sectors == curSec)[0][0]
                 # Apply an approximate aberration correction
                 if args.aberrate:
