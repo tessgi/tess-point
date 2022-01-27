@@ -3,9 +3,9 @@
 tess_stars2px.py - High precision TESS pointing tool.
 Convert target coordinates given in Right Ascension and Declination to
 TESS detector pixel coordinates for the prime mission TESS observing 
-sectors (Year 1 & 2) and Extendend mission Years 3-4.
+sectors (Year 1 & 2), Extendend mission Years 3-5.
 Can also query MAST to obtain detector
-pixel coordinates for a star by TIC ID only (must be online for this option).
+pixel coordinates for a star by TIC ID or common star name (must be online for this option).
 
 USAGE to display command line arguments:
 python tess_stars2px.py -h
@@ -20,30 +20,19 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra 
 
-VERSION: 0.6.3
+VERSION: 0.7.0
 
 WHAT'S NEW:
+    -Year 5 pointings (Sectors 56-69) now available
+    -Added Sector Pointing override file input
+      Supports mission planning as well as enabling the user
+      to speed up the calculation by only searching a subset of all sectors
     -Bug correction for aberration. Only impacts if you were using
-         aberration flag WITHOUT the single sector. In other words,
+         aberration flag (-a) WITHOUT the single sector flag (-s). In other words,
          does not affect users that did not use --aberrate or -aberrate with -s
-    -Sector 46 field update 2021 Oct. 1
-    -Too close to edge Warning flag now output in column 11. If a target is within 6 pixels
-        of the edge of the science region (edgeWarn==1), then the target is unlikely
-        to be assigned a 2minute or 20s aperture. The science pixels range
-        in column from 45-2092 and row from 1-2048
-    -Year 4 Sectors 40-55 Now Available
-    -Now has option to perform an approximate aberration correction.
-        Uses astropy GCRS geocentric aberrated frame.  The Earth has velocity of 30km/s
-        whereas TESS has velocity relative to Earth of <4km/s.  Thus, correcting
-        for Earth aberration is most of the way there. Earth aberrates ~20 arcsec ~ 1 TESS pixel
-        Aberration is only done in forward ra,dec-> pix direction. No aberratuib correction is done for inverse pix->ra,dec direction
-    -Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
-    -MUCH FASTER NOW - skipped rough estimate step which was much much slower
-         than just doing the matrix math for position.
-    
 
 NOTES:
-    -Pointing table is for TESS Year 1 - 4 (Sectors 1-55) 
+    -Pointing table is for TESS Year 1 - 5 (Sectors 1-69) 
     -Pointing table is unofficial, and the pointings may change.
     -See https://tess.mit.edu/observations/ for latest TESS pointing table
     -Pointing prediction algorithm is similar to internally at MIT for
@@ -56,11 +45,13 @@ NOTES:
         camera, and by-eye source location, a 2 pixel accuracy estimate is
         warranted. There is an approximate aberration option now available
     -The output pixel coordinates assume the ds9 convention with
-        1,1 being the middle of the lower left corner.
-    -No corrections for velocity aberration are calculated.
+        1,1 being the middle of the lower left corner pixel.
+    -No corrections for velocity aberration are calculated by default.
        Potentially more accurate
         results can be obtained if the target RA and Declination coordinates
-        have aberration effects applied.  
+        have aberration effects applied. An aberration approximation is available
+        by using the -a flag. The aberration approximation assumes Earth motion without
+        taking into account the TESS spacecraft motion around Earth.
     -For proposals to the TESS science office or directors discretionary time,
       please consult the TESS prediction webtool available at
       https://heasarc.gsfc.nasa.gov/cgi-bin/tess/webtess/wtv.py
@@ -794,93 +785,138 @@ class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
     # When adding sectors the arg2 needs to end +1 from sector
     #  due to the np.arange function ending at arg2-1
-    sectors = np.arange(1,56, dtype=np.int)
+    sectors = np.arange(1,70, dtype=np.int)
 
     # Arrays are broken up into the following sectors:
-    # Line 1: Sectors 1-5
+    # Line 1: Sectors 1-5 Start Year 1
     # Line 2: Secotrs 6-9
-    # Line 3: Sectors 10-13
-    # Line 4: Sectors 14-17
+    # Line 3: Sectors 10-13 End Year 1
+    # Line 4: Sectors 14-17 Start Year 2
     # Line 5: Sectors 18-22
-    # Line 6: Sectors 23-26
-    # Line 7: Sectors 27-30
+    # Line 6: Sectors 23-26 End Year 2
+    # Line 7: Sectors 27-30 Star Year 3
     # Line 8: Sectors 31-34
     # Line 9: Sectors 35-38
-    # Line 10: Sectors 39
-    # Line 11: Sectors 40-43
+    # Line 10: Sectors 39 End Year 3
+    # Line 11: Sectors 40-43 Star Year 4
     # Line 12: S 44-47
     # Line 13: S 48-51
-    # Line 14: S 52-55
+    # Line 14: S 52-55 END YEAR 4
+    # Line 15: S 56-59 START YEAR 5
+    # Line 16: S 60-63
+    # Line 17: S 64-67
+    # Line 18: S 68-69 END Year 5
     ### NOTE IF you add Sectors be sure to update the allowed range
     ### for sectors in argparse arguments!!!
-    ras = np.array([352.6844,16.5571,36.3138,55.0070,73.5382, \
+    ras = np.array([352.6844, 16.5571, 36.3138, 55.0070, 73.5382,\
                     92.0096,110.2559,128.1156,145.9071,\
-                    165.0475,189.1247,229.5885,298.6671, \
+                    165.0475,189.1247,229.5885,298.6671,\
                     276.7169,280.3985,282.4427,351.2381,\
-                    16.1103,60.2026,129.3867,171.7951,197.1008,\
+                    16.1103, 60.2026,129.3867,171.7951,197.1008,\
                     217.2879,261.4516,265.6098,270.1381,\
-                    326.8525,357.2944,18.9190,38.3564,\
-                    57.6357,77.1891,96.5996,115.2951,\
+                    326.8525,357.2944, 18.9190, 38.3564,\
+                    57.6357, 77.1891, 96.5996,115.2951,\
                     133.2035,150.9497,170.2540,195.7176,\
-                    242.1981, \
-                    273.0766, 277.6209, 13.0140, 49.5260, \
-                    89.6066, 130.2960, 157.6997, 143.3807,\
-                    179.4254, 202.6424, 221.8575, 239.4257, \
-                    266.3618, 270.8126, 290.1210, 307.8655], dtype=np.float)
+                    242.1981,\
+                    273.0766,277.6209, 13.0140, 49.5260,\
+                    89.6066,130.2960,157.6997,143.3807,\
+                    179.4254,202.6424,221.8575,239.4257,\
+                    266.3618,270.8126,290.1210,307.8655,\
+                    324.2778,344.2275,  9.3118, 52.9755,\
+                    125.6742,118.0446,135.2412,153.0613,\
+                    173.2653,201.6239,259.1702,326.7691,\
+                    359.2829, 20.0449], dtype=np.float)
             
-    decs = np.array([-64.8531,-54.0160,-44.2590,-36.6420,-31.9349, \
+    decs = np.array([-64.8531,-54.0160,-44.2590,-36.6420,-31.9349,\
                      -30.5839,-32.6344,-37.7370,-45.3044,\
                      -54.8165,-65.5369,-75.1256,-76.3281,\
-                     62.4756,64.0671,66.1422,57.8456, \
-                     67.9575,76.2343,75.2520,65.1924,53.7434, \
-                     43.8074,63.1181,61.9383,61.5637,\
+                     62.4756, 64.0671, 66.1422, 57.8456,\
+                     67.9575, 76.2343, 75.2520, 65.1924, 53.7434,\
+                     43.8074, 63.1181, 61.9383, 61.5637,\
                      -72.4265,-63.0056,-52.8296,-43.3178,\
                      -35.7835,-31.3957,-30.7848,-33.7790,\
                      -39.6871,-47.7512,-57.3725,-67.8307,\
-                     -76.3969, \
-                     61.7450, 62.7640, 6.3337, 18.9737,\
-                     24.1343, 19.0181, 10.0922, 73.1125, \
-                     62.1038, 50.9532, 41.7577, 35.2333, \
-                     61.8190, 61.5761, 32.6073, 37.6464], dtype=np.float) 
-
-    rolls = np.array([-137.8468,-139.5665,-146.9616,-157.1698,-168.9483, \
+                     -76.3969,\
+                     61.7450, 62.7640,  6.3337, 18.9737,\
+                     24.1343, 19.0181, 10.0922, 73.1125,\
+                     62.1038, 50.9532, 41.7577, 35.2333,\
+                     61.8190, 61.5761, 32.6073, 37.6464,\
+                     46.3448, 56.4121, 67.6524, 77.1746,\
+                     77.3113,-36.0902,-42.2415,-50.6996,\
+                     -60.8650,-71.5724,-78.7974,-74.2796,\
+                     -64.2357,-54.2315], dtype=np.float)
+            
+    rolls = np.array([222.1532,220.4335,213.0384,202.8302,191.0517,\
                       178.6367,166.4476,155.3091,145.9163,\
-                      139.1724,138.0761,153.9773,-161.0622,\
-                      32.2329,55.4277,79.4699,41.9686,\
-                      40.5453,19.6463,334.5689,317.9495,319.6992,\
-                      327.4246,317.2624,339.5293,0.6038,\
+                      139.1724,138.0761,153.9773,198.9378,\
+                      32.2329, 55.4277, 79.4699, 41.9686,\
+                      40.5453, 19.6463,334.5689,317.9495,319.6992,\
+                      327.4246,317.2624,339.5293,  0.6038,\
                       214.5061,222.5216,219.7970,212.0441,\
                       201.2334,188.6263,175.5369,163.1916,\
                       152.4006,143.7306,138.1685,139.3519,\
                       161.5986,\
-                      14.1539, 37.2224, 292.8009, 284.9617,\
-                      270.1557, 255.0927, 248.4063, 327.1020,\
-                      317.4166, 321.3516, 329.7340, 339.8650,\
-                      343.1429, 3.6838, 13.4565, 24.5369], dtype=np.float) 
+                      14.1539, 37.2224,292.8009,284.9617,\
+                      270.1557,255.0927,248.4063,327.1020,\
+                      317.4166,321.3516,329.7340,339.8650,\
+                      343.1429,  3.6838, 13.4565, 24.5369,\
+                      36.2524, 44.0100, 45.3615, 26.5121,\
+                      337.3244,162.2198,151.5884,142.7405,\
+                      137.2810,140.7443,173.9147,217.4678,\
+                      226.0975,222.7721], dtype=np.float)    
 
-    midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611,\
-                         2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222,\
-                         2458582.760417, 2458610.774306, 2458640.031250, 2458668.618056,\
-                         2458697.336806, 2458724.934028, 2458751.649306, 2458777.722222,\
-                         2458803.440972, 2458828.958333, 2458856.388889, 2458884.916667, 2458913.565972,\
-                         2458941.829861, 2458969.263889, 2458996.909722, 2459023.107639,\
-                         2459049.145833, 2459075.166667, 2459102.319444, 2459130.201389,\
-                         2459158.854167, 2459186.940972, 2459215.427083, 2459241.979167,\
-                         2459268.579861, 2459295.301177, 2459322.577780, 2459349.854382,\
-                         2459377.130985,\
-                         2459404.407588, 2459431.684191, 2459458.960794, 2459486.237397,\
-                         2459513.514000, 2459540.790602, 2459568.067205, 2459595.343808,\
-                         2459622.620411, 2459649.897014, 2459677.173617, 2459704.450219,\
-                         2459731.726822, 2459759.003425, 2459786.280028, 2459813.556631], dtype=np.float)
+    midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611, \
+                         2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222, \
+                         2458582.760417, 2458610.774306, 2458640.031250, 2458668.618056, \
+                         2458697.336806, 2458724.934028, 2458751.649306, 2458777.722222, \
+                         2458803.440972, 2458828.958333, 2458856.388889, 2458884.916667, 2458913.565972, \
+                         2458941.829861, 2458969.263889, 2458996.909722, 2459023.107639, \
+                         2459049.145833, 2459075.166667, 2459102.319444, 2459130.201389, \
+                         2459158.854167, 2459186.940972, 2459215.427083, 2459241.979167, \
+                         2459268.579861, 2459295.301177, 2459322.577780, 2459349.854382, \
+                         2459377.130985, \
+                         2459404.407588, 2459431.684191, 2459458.960794, 2459486.237397, \
+                         2459513.514000, 2459540.790602, 2459568.067205, 2459595.343808, \
+                         2459622.620411, 2459649.897014, 2459677.173617, 2459704.450219, \
+                         2459731.726822, 2459759.003425, 2459786.280028, 2459813.556631, \
+                         2459840.833234, 2459868.109837, 2459895.386439, 2459922.663042, \
+                         2459949.939645, 2459977.216248, 2460004.492851, 2460031.769454, \
+                         2460059.046057, 2460086.322659, 2460113.599262, 2460140.875865, \
+                         2460168.152468, 2460195.429071], dtype=np.float)
+
 
     camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=np.float)
     
 
-    def __init__(self, trySector=None, fpgParmFileList=None):
+    def __init__(self, trySector=None, fpgParmFileList=None, sectorOverrideFile=None):
         # Convert S/C boresite pointings to ecliptic coords for each camera
+        
+        # if sectorOverrideFile is set read in the sector pointing overrides
+        # This can be used for mission planning or for speed ups
+        #  by allowing the user to put in a custom list of sectors that they want
+        # to run over
+        if not sectorOverrideFile is None:
+            try:
+                dataBlock = np.genfromtxt(sectorOverrideFile, dtype=['i4','f8','f8','f8'])
+                self.sectors = np.array(dataBlock['f0'])
+                self.ras = np.array(dataBlock['f1'])
+                self.decs = np.array(dataBlock['f2'])
+                self.rolls = np.array(dataBlock['f3'])
+                # just put something into midtimes at this point should never get used
+                # because aberration is not supported with sector override file
+                medmidtimes = np.median(self.midtimes)
+                self.midtimes = np.full_like(self.ras, medmidtimes)
+            except:
+                print('There was a problem reading the Sector Override File. Exiting!')
+                sys.exit(1)
+        
         # If trySector is set only keep the single requested sector
         if not trySector is None:
             idx = np.where(self.sectors == trySector)[0]
+            # Check for condition where the requested sector is not in list!
+            if len(idx) == 0:
+                print('Could not find requested sector: {0:d} in the available sector pointing data'.format(trySector))
+                sys.exit(1)
             self.sectors = self.sectors[idx]
             self.ras = self.ras[idx]
             self.decs = self.decs[idx]
@@ -916,6 +952,12 @@ class TESS_Spacecraft_Pointing_Data:
         for iPnt in range(nPoints):
             sc_ra_dec_roll =  np.array([self.ras[iPnt], self.decs[iPnt], self.rolls[iPnt]])
             self.fpgObjs.append(Levine_FPG(sc_ra_dec_roll, fpg_file_list=fpg_file_list))
+            
+        # Dump sector data out
+        #for i, curSec in enumerate(self.sectors):
+        #    strout = '{0:d} {1:8.4f} {2:7.4f} {3:9.4f}'.format(curSec,\
+        #              self.ras[i], self.decs[i], self.rolls[i])
+        #    print(strout)
 
 def get_radec_from_posangsep(ra, dec, pa, sep):
     deg2rad = np.pi/180.0
@@ -1069,10 +1111,11 @@ def fileOutputHeader(fp, fpgParmFileList=None):
 
 def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scInfo=None, \
                               fpgParmFileList=None, combinedFits=False,\
-                              noCollateral=False, aberrate=False):
+                              noCollateral=False, aberrate=False, sectorOverrideFile=None):
     if scInfo == None:
         # Instantiate Spacecraft position info
-        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList, \
+                                               sectorOverrideFile=sectorOverrideFile)
     else:
         scinfo = scInfo
     # Now make list of the star objects
@@ -1152,10 +1195,11 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
             outColPix, outRowPix, scinfo
 
 def tess_stars2px_reverse_function_entry(trySector, camera, ccd, colWant, rowWant, scInfo=None, \
-                              fpgParmFileList=None):
+                              fpgParmFileList=None, sectorOverrideFile=None):
     if scInfo == None:
         # Instantiate Spacecraft position info
-        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList, \
+                                               sectorOverrideFile=sectorOverrideFile)
     else:
         scinfo = scInfo
         
@@ -1175,7 +1219,7 @@ if __name__ == '__main__':
                         help="Filename for input Target TIC [int]; RA[deg]; Dec[dec]; in white space delimited text file Column 1, 2, and 3 respectively")
     parser.add_argument("-o", "--outputFile", type=argparse.FileType('w'), \
                         help="Optional filename for output.  Default is output to stdout ")
-    parser.add_argument("-s", "--sector", type=int, choices=range(1,56),\
+    parser.add_argument("-s", "--sector", type=int, choices=range(1,70),\
                         help="Search a single sector Number [int]")
     parser.add_argument("-x", "--combinedFits", action='store_true', \
                         help="Output detector pixel coordinates for the 'Big' multi-detector combined fits file format")
@@ -1191,6 +1235,8 @@ if __name__ == '__main__':
                         help="Use proxy e.g.\"http://<user>:<passwd>@<proxy_server>:<proxy_port>\" ")
     parser.add_argument("-a", "--aberrate", action='store_true',\
                         help="Apply approximate aberration correction to input coordinates. Uses astropy GCRS coordinate frame to approximate TESS aberration")
+    parser.add_argument("-sovr", "--sector_override", type=argparse.FileType('r'), \
+                        help="Filename for sector pointing overrides SectorNum [Int]; RA(deg) [Float]; Dec(deg) [Float]; Roll(deg) [Float]; in white space delimited text file Column 1, 2, 3, and 4 respectively")
     args = parser.parse_args()
 
 # DEBUG BLOCK for hard coding input parameters and testing
@@ -1209,12 +1255,18 @@ if __name__ == '__main__':
 #            self.noCollateral = False
 #            self.reverse = None
 #            self.reverse = [2,1,2,2092.0,1.0]
+#            self.sectorOverrideFile = None
 #    args = test_arg()
     
     # At least one Mode -t -c -f -r -n must have been specified
     if (args.ticId is None) and (args.coord is None) and (args.inputFile is None) and (args.reverse is None) and (args.name is None):
         print('You must specify one and only one mode -t, -c, -f, -r, -n')
         print('`python stars2px.py -h\' for help')
+        sys.exit(1)
+
+    # sector overrides are currently not allowed with the aberration flag
+    if (not (args.sector_override is None)) and args.aberrate:
+        print('Aberration flag (-a) is not supported with the sector override file input (-sovr)')
         sys.exit(1)
 
     # Check for reverse mode
@@ -1273,10 +1325,15 @@ if __name__ == '__main__':
         fpgParmFileList = None
         if not (args.fpgParameterFiles is None):
             fpgParmFileList = [x for x in args.fpgParameterFiles]
+            
+        sectorOverrideFile = None
+        if not (args.sector_override is None):
+            sectorOverrideFile = args.sector_override
     
             
         # Instantiate Spacecraft position info
-        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList, \
+                                               sectorOverrideFile=sectorOverrideFile)
         # Open output file if requested
     #    if not (args.outputFile is None):
     #        fout = open(args.outputFile, 'w')
@@ -1359,8 +1416,14 @@ if __name__ == '__main__':
         fpgParmFileList = None
         if not (args.fpgParameterFiles is None):
             fpgParmFileList = [x for x in args.fpgParameterFiles]
+            
+        sectorOverrideFile = None
+        if not (args.sector_override is None):
+            sectorOverrideFile = args.sector_override
+            
         # Instantiate Spacecraft position info
-        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList)
+        scinfo = TESS_Spacecraft_Pointing_Data(trySector=trySector, fpgParmFileList=fpgParmFileList,\
+                                               sectorOverrideFile=sectorOverrideFile)
         # Camera center ra and dec
         iCam = int(args.reverse[1])-1
         iCcd = int(args.reverse[2])-1
@@ -1373,68 +1436,4 @@ if __name__ == '__main__':
         idxSec = np.where(scinfo.sectors == trySector)[0][0]
         ra_deg, dec_deg = scinfo.fpgObjs[idxSec].pix2radec_nocheck_single(iCam, iCcd, [starCcdXs, starCcdYs])
         print(ra_deg, dec_deg)
-        
-#  OLD Way with minimizer       
-#        def minFunc(x, iCam, iCcd, colWnt, rowWnt):
-#            starCcdNum, starFitsXs, starFitsYs, starCcdXs, starCcdYs, lat = scinfo.fpgObjs[0].radec2pix_nocheck_single(\
-#                               x[0], x[1], iCam, iCcd)
-#            xUse = starCcdXs + 45.0
-#            yUse = starCcdYs + 1.0
-#            # Penalize latitudes <70
-#            latBad = 0.0
-#            if lat < 70.0:
-#                latBad = 70.0-lat
-#            zUse = np.power(xUse-colWnt,2) + np.power(yUse-rowWnt,2) + np.power(latBad,4) + 1.0
-#            return zUse
-#        # Use an initial minimize with bounds to keep things from going haywire
-#        # start with camera center
-#        optResult = opt.minimize(minFunc, [camRa, camDec], \
-#                                 args=(iCam, iCcd, colWnt, rowWnt), method='TNC', \
-#                                 bounds=[[0.0,410.0],[-90.0, 90.0]], tol=1.0e-6, \
-#                                 options={'maxiter':500})
-#        newRa = optResult.x[0]
-#        newDec = optResult.x[1]
-#        #  Refine minimization to hopefully converge
-#        optResult2 = opt.minimize(minFunc, [newRa, newDec], \
-#                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
-#                                 tol=1.0e-6, \
-#                                 options={'maxiter':500})
-#        newRa2 = optResult2.x[0]
-#        newDec2 = optResult2.x[1]
-#        minQuality = optResult2.fun
-#        newRa2 = np.mod(newRa2, 360.0)
-#        if np.abs(minQuality - 1.0) > 1.0e-4:
-#
-#            newRa = camRa + (newRa-camRa)/2.0
-#            newDec = camDec + (newDec-camDec)/2.0
-#            optResult3 = opt.minimize(minFunc, [newRa, newDec], \
-#                                 args=(iCam, iCcd, colWnt, rowWnt), method='Nelder-Mead', \
-#                                 tol=1.0e-6, \
-#                                 options={'maxiter':500}) 
-#            newRa3 = optResult3.x[0]
-#            newDec3 = optResult3.x[1]
-#            minQuality = optResult3.fun
-#            newRa3 = np.mod(newRa3, 360.0)
-#            if newDec3 < -90.0:
-#                newDec3 = -90.0 + (-90.0 - newDec3)
-#                newRa3 = newRa3 + 180.0
-#                newRa3 = np.mod(newRa3, 360.0)
-#            if newDec3 > 90.0:
-#                newDec3 = 90.0 + (90.0 - newDec3)
-#                newRa3 = newRa3 + 180.0
-#                newRa3 = np.mod(newRa3, 360.0)
-#                
-#            print(newRa3, newDec3, minQuality)
-#            
-#        else:
-#            if newDec2 < -90.0:
-#                newDec2 = -90.0 + (-90.0 - newDec2)
-#                newRa2 = newRa2 + 180.0
-#                newRa2 = np.mod(newRa2, 360.0)
-#            if newDec2 > 90.0:
-#                newDec2 = 90.0 + (90.0 - newDec2)
-#                newRa2 = newRa2 + 180.0
-#                newRa2 = np.mod(newRa2, 360.0)
-#
-#            print(newRa2, newDec2, minQuality)
         

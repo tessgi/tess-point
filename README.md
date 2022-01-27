@@ -1,7 +1,7 @@
 # TESS-Point
 High Precision TESS pointing tool.
 
-Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3-4 up to Sectors 55.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID only (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
+Convert target coordinates given in Right Ascension and Declination to TESS detector pixel coordinates for the TESS prime mission 26 observing sectors (Year 1 & 2) and Year 3-5 up to Sectors 64.  Can also query MAST to obtain detector pixel coordinates for a star by TIC ID or common star name (must be online for this option).  Provides the target ecliptic coordinates, Sector number, camera number, detector number, and pixel column and row.  If there is no output, then the target is not visible to TESS.
 
 ### Install or Upgrade
 `pip install tess-point`
@@ -36,15 +36,14 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra.
 
-### VERSION: 0.6.3
+### VERSION: 0.7.0
 
 ### WHAT'S NEW:
+- Year 5 pointings for Sectors 56-69 now available.
 - Bug correction for aberration. Only impacts if you were using aberration flag WITHOUT the single sector. In other words, the bug does not impact users that did not use aberrate flag or aberrate flag with s flag
 - Sector 46 field update 2021 October
 - Too close to edge Warning flag now output in column. If a target is within 6 pixels of the edge of the science region (edgeWarn==1), then the target is unlikely to be assigned a 2minute or 20s aperture. The science pixels range in column from 45-2092 and row from 1-2048
-- Year 4 pointings for Sectors 40-55 now available
 - An approximate aberration correction is available with command line option.  Uses astropy GCRS Earth based frame which is close to TESS aberration
-
 - Inverse transform (input Sector, Camera, CCD, pixel Column, pixel Row --> RA and Dec) is now 'analytic' rather than through brute force minimization.  The inverse transform is much faster and much more reliable.
 
 ### CITATION:
@@ -53,7 +52,7 @@ A citation for tess-point is available through the [Astrophysics Source Code Lib
 Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Roberts, J. E., Morris, B., Sipocz, B., Owens, M., Feinstein, A. D., Camacho, J., 2020, 0.4.1, Astrophysics Source Code Library, record ascl:2003:001
 
 ### NOTES
-- Pointing table is for TESS Year 1 - 4(Sectors 1-55) .
+- Pointing table is for TESS Year 1 - 5 (Sectors 1-69) .
 
 - Testing shows pointing with this tool should be accurate to better than a pixel, but without including aberration effects, ones algorithm adopted for centroiding highly assymmetric point-spread function at edge of camera, and by-eye source location, a 2 pixel accuracy estimate is warranted. Use aberration option for better accuracy
 
