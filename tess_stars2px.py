@@ -1124,7 +1124,7 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     # Make rough determination as to which pointing camera combos are worth
     # Checking in detail and then do detailed checking
     findAny=False
-    outID = np.array([-1], dtype=int64)
+    outID = np.array([-1], dtype=np.int64)
     outEclipLong = np.array([-1.0], dtype=float)
     outEclipLat = np.array([-1.0], dtype=float)
     outSec = np.array([-1], dtype=int)
@@ -1274,12 +1274,12 @@ if __name__ == '__main__':
         # Do single coords first
         if args.coord is not None and args.name is None:
             nTarg = 1
-            starTics = np.array([0], dtype=int64)
+            starTics = np.array([0], dtype=np.int64)
             starRas = np.array([args.coord[0]], dtype=float)
             starDecs = np.array([args.coord[1]], dtype=float)
         elif args.coord is None and args.name is not None:
             nTarg = 1
-            starTics = np.array([0], dtype=int64)
+            starTics = np.array([0], dtype=np.int64)
 
             # Name resolve  in try except  for detecting problem
             try:
@@ -1304,7 +1304,7 @@ if __name__ == '__main__':
             else:
                 # Must have requested MAST query with TIC ID
                 # Make a list of TICs using strings
-                starTics = np.array([args.ticId], dtype=int64)
+                starTics = np.array([args.ticId], dtype=np.int64)
                 ticStringList = ['{0:d}'.format(x) for x in starTics]    
                 # Setup mast query
                 request = {'service':'Mast.Catalogs.Filtered.Tic', \
