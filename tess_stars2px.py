@@ -700,8 +700,8 @@ class Levine_FPG():
             ra and dec to pixel coords mapping
         """
         nStar = len(ras)
-        inCamera = np.array([], dtype=np.int)
-        ccdNum = np.array([], dtype=np.int)
+        inCamera = np.array([], dtype=int)
+        ccdNum = np.array([], dtype=int)
         fitsxpos = np.array([], dtype=np.double)
         fitsypos = np.array([], dtype=np.double)
         ccdxpos = np.array([], dtype=np.double)
@@ -785,7 +785,7 @@ class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
     # When adding sectors the arg2 needs to end +1 from sector
     #  due to the np.arange function ending at arg2-1
-    sectors = np.arange(1,70, dtype=np.int)
+    sectors = np.arange(1,70, dtype=int)
 
     # Arrays are broken up into the following sectors:
     # Line 1: Sectors 1-5 Start Year 1
@@ -825,7 +825,7 @@ class TESS_Spacecraft_Pointing_Data:
                     324.2778,344.2275,  9.3118, 52.9755,\
                     125.6742,118.0446,135.2412,153.0613,\
                     173.2653,201.6239,259.1702,326.7691,\
-                    359.2829, 20.0449], dtype=np.float)
+                    359.2829, 20.0449], dtype=float)
             
     decs = np.array([-64.8531,-54.0160,-44.2590,-36.6420,-31.9349,\
                      -30.5839,-32.6344,-37.7370,-45.3044,\
@@ -844,7 +844,7 @@ class TESS_Spacecraft_Pointing_Data:
                      46.3448, 56.4121, 67.6524, 77.1746,\
                      77.3113,-36.0902,-42.2415,-50.6996,\
                      -60.8650,-71.5724,-78.7974,-74.2796,\
-                     -64.2357,-54.2315], dtype=np.float)
+                     -64.2357,-54.2315], dtype=float)
             
     rolls = np.array([222.1532,220.4335,213.0384,202.8302,191.0517,\
                       178.6367,166.4476,155.3091,145.9163,\
@@ -863,7 +863,7 @@ class TESS_Spacecraft_Pointing_Data:
                       36.2524, 44.0100, 45.3615, 26.5121,\
                       337.3244,162.2198,151.5884,142.7405,\
                       137.2810,140.7443,173.9147,217.4678,\
-                      226.0975,222.7721], dtype=np.float)    
+                      226.0975,222.7721], dtype=float)    
 
     midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611, \
                          2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222, \
@@ -882,10 +882,10 @@ class TESS_Spacecraft_Pointing_Data:
                          2459840.833234, 2459868.109837, 2459895.386439, 2459922.663042, \
                          2459949.939645, 2459977.216248, 2460004.492851, 2460031.769454, \
                          2460059.046057, 2460086.322659, 2460113.599262, 2460140.875865, \
-                         2460168.152468, 2460195.429071], dtype=np.float)
+                         2460168.152468, 2460195.429071], dtype=float)
 
 
-    camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=np.float)
+    camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=float)
     
 
     def __init__(self, trySector=None, fpgParmFileList=None, sectorOverrideFile=None):
@@ -923,8 +923,8 @@ class TESS_Spacecraft_Pointing_Data:
             self.rolls = self.rolls[idx]
             self.midtimes = self.midtimes[idx]
         nPoints = len(self.sectors)
-        self.camRa = np.zeros((4, nPoints), dtype=np.float)
-        self.camDec = np.zeros((4, nPoints), dtype=np.float)
+        self.camRa = np.zeros((4, nPoints), dtype=float)
+        self.camDec = np.zeros((4, nPoints), dtype=float)
         # Convert S/C boresite ra and dec to camera ra and dec
         for iPnt in range(nPoints):
             curra = self.ras[iPnt]
@@ -990,12 +990,12 @@ class target_info:
         self.dec = 0.0
         self.eclipLong = 0.0
         self.eclipLat = 0.0
-        self.sectors = np.array([], dtype=np.int)
-        self.onSiliconFlag = np.array([], dtype=np.int)
-        self.possibleOnSiliconFlag = np.array([], dtype=np.int)
-        self.cameras = np.array([], dtype=np.int)
-        self.xpxs = np.array([], dtype=np.float)
-        self.ypxs = np.array([], dtype=np.float)
+        self.sectors = np.array([], dtype=int)
+        self.onSiliconFlag = np.array([], dtype=int)
+        self.possibleOnSiliconFlag = np.array([], dtype=int)
+        self.cameras = np.array([], dtype=int)
+        self.xpxs = np.array([], dtype=float)
+        self.ypxs = np.array([], dtype=float)
 
 def make_target_objects(tic, ra, dec):
     starList = []
@@ -1125,13 +1125,13 @@ def tess_stars2px_function_entry(starIDs, starRas, starDecs, trySector=None, scI
     # Checking in detail and then do detailed checking
     findAny=False
     outID = np.array([-1], dtype=np.int64)
-    outEclipLong = np.array([-1.0], dtype=np.float)
-    outEclipLat = np.array([-1.0], dtype=np.float)
-    outSec = np.array([-1], dtype=np.int)
-    outCam = np.array([-1], dtype=np.int)
-    outCcd = np.array([-1], dtype=np.int)
-    outColPix = np.array([-1.0], dtype=np.float)
-    outRowPix = np.array([-1.0], dtype=np.float)
+    outEclipLong = np.array([-1.0], dtype=float)
+    outEclipLat = np.array([-1.0], dtype=float)
+    outSec = np.array([-1], dtype=int)
+    outCam = np.array([-1], dtype=int)
+    outCcd = np.array([-1], dtype=int)
+    outColPix = np.array([-1.0], dtype=float)
+    outRowPix = np.array([-1.0], dtype=float)
     for i, curTarg in enumerate(starList):
         for curSec in scinfo.sectors:
             starRas = np.array([curTarg.ra])
@@ -1275,8 +1275,8 @@ if __name__ == '__main__':
         if args.coord is not None and args.name is None:
             nTarg = 1
             starTics = np.array([0], dtype=np.int64)
-            starRas = np.array([args.coord[0]], dtype=np.float)
-            starDecs = np.array([args.coord[1]], dtype=np.float)
+            starRas = np.array([args.coord[0]], dtype=float)
+            starDecs = np.array([args.coord[1]], dtype=float)
         elif args.coord is None and args.name is not None:
             nTarg = 1
             starTics = np.array([0], dtype=np.int64)
@@ -1287,8 +1287,8 @@ if __name__ == '__main__':
                 print("Coordinates for {0}: ({1}, {2})"
                   .format(args.name[0], coordinate.ra.degree,
                           coordinate.dec.degree))
-                starRas = np.array([coordinate.ra.degree], dtype=np.float)
-                starDecs = np.array([coordinate.dec.degree], dtype=np.float)
+                starRas = np.array([coordinate.ra.degree], dtype=float)
+                starDecs = np.array([coordinate.dec.degree], dtype=float)
             except:
                 print("Could not resolve: {0}".format(args.name[0]))
                 sys.exit(1)
