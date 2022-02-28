@@ -18,11 +18,13 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Testing by Thomas Barclay (NASA Goddard) &
          Jessica Roberts (Univ. of Colorado)
  Sesame queries by Brett Morris (UW)
- Proxy Support added by Dishendra Mishra 
+ Proxy Support added by Dishendra Mishra
+ Deprecation warnings correctsion by Ethan Kruse
 
-VERSION: 0.7.0
+VERSION: 0.7.1
 
 WHAT'S NEW:
+    -Deprecation Warning Corrections
     -Year 5 pointings (Sectors 56-69) now available
     -Added Sector Pointing override file input
       Supports mission planning as well as enabling the user
