@@ -1,3 +1,21 @@
+# This branch contains a vectorized version of `tess-point`!
+
+This is an attempt to 1) make this tool faster by using Python niceties 2) make the API for this tool easier for Python users. Making the tool faster also means we can do calculations on the fly for updating interactive plots.
+
+This is a work in progress! Lots of documentation is missing.
+
+You probably won't be able to install this branch as it is, because the package structure is broken.
+
+![speed](speed.png)
+![overlay](overlay.png)
+
+## Missing Functions
+* star_in_fov
+* optics_fp
+* make_az_asym
+* mm_to_pix
+* radec2pix
+
 # TESS-Point
 High Precision TESS pointing tool.
 
@@ -89,7 +107,7 @@ Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Robe
 - numpy
 
 ### SPECIAL THANKS TO:
-Includes code from the python MAST query examples 
+Includes code from the python MAST query examples
 https://mast.stsci.edu/api/v0/pyex.html
 
 ### IMPLEMENTATION DETAILS:
