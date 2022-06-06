@@ -2,7 +2,7 @@
 This is based off the original c code version that has been compiled with
 emscripten to make available to web browsers. This version along with
 the custom tailored javascript binding is available on my
-<a href="eta-earth.org/tess_play.html">personal webpage</a>.
+<a href="https://eta-earth.org/tess_play.html">personal webpage</a>.
 
 The build uses emscripten and cmake. In order to build one needs to install
 the emscripten sdk along with its prerequisites. In my personal experience using
