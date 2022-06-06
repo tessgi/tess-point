@@ -20,9 +20,11 @@ The cmake instructions are in CMakeLists.txt, and emscripten takes care
 of 'properly' calling emcc as the build target. From inside the top wasm directory,
 issue the following commands to build.
 
-`emcmake cmake -S . -B build
-cd build
-make`
+`emcmake cmake -S . -B build`
+
+`cd build`
+
+`make`
 
 I then move the resulting tess_stars2px.js and tess_stars2px.wasm into the
 public directory by issuing `make install`
