@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
-project(starspx6 VERSION 0.1
-                  DESCRIPTION "tess_stars2px cmake"
-                  LANGUAGES C)
+project(tess_stars2px VERSION 0.1
+                  DESCRIPTION "tess_stars2px cmake")
 
-# Set c Compiler
-set(CMAKE_C_COMPILER clang)
+set(CMAKE_BUILD_TYPE DEBUG)
 
 # add the source files needed for main executable
 add_executable(tess_stars2px
@@ -21,3 +19,12 @@ endif()
 
 # define header file path
 target_include_directories(tess_stars2px PRIVATE include)
+
+# Make sure the tess_stars2px function is exported along with main for javascript
+#  visibility NOTE the leading '_'
+target_link_options(tess_stars2px PRIVATE -sEXPORTED_FUNCTIONS=['_main','_tess_stars2px'])
+
+# output wasm and js hopefully
+set(CMAKE_EXECUTABLE_SUFFIX ".html")
+
+install(FILES ${CMAKE_BINARY_DIR}/tess_stars2px.js ${CMAKE_BINARY_DIR}/tess_stars2px.wasm DESTINATION ${CMAKE_SOURCE_DIR}/public)

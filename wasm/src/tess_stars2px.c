@@ -543,33 +543,25 @@ int ccdpx_to_outpx(double ccdpx[2], double napx[2], int *edgeWarn)
 }
 /******************************************************************************/
 
-void usage(char *prog, int argc)
+void usage(const char *prog, int argc)
 {
-  fprintf(stderr,"Usage: %s RA_star Dec_star [degrees]\n",prog);
+  fprintf(stderr,"Usage: %s RA_star Dec_star in [degrees]\n",prog);
   exit(-1);
 }
 
 /******************************************************************************/
 
-int main(int argc, char *argv[])
+void tess_stars2px(double ra_ab, double dec_ab)
 {
-  char *pixbase;
   double radecroll[3], eulc[3], vstar[3], vcam[3], lng, lat, lngd, latd;
   double rdr[3];
   double xyfp[2], ccdpx[2], fitpx[2], napx[2];
   int iccd, i, jccd, kccd, j, edgeWarn, fndAny, iSec;
-  FILE *fpf;
+
 
   dtor = M_PI/180.0;
   fndAny = 0;
   set_fpg_parameters();
-  if(argc != 3) {
-    fprintf(stderr,"ERROR: argc = %d;\n",argc);
-    usage(argv[0],argc);
-  }
-  ra_ab = atof(argv[1]);
-  dec_ab = atof(argv[2]);
-  //fprintf(stdout, "ra: %11.5f dec: %11.5f\n", ra_ab, dec_ab);
 
   // Start loop over sectors
   for (iSec=0;iSec<NSEC;iSec++) {
@@ -619,3 +611,17 @@ int main(int argc, char *argv[])
 
 }
 /******************************************************************************/
+//
+int main(int argc, char const *argv[]) {
+  //if(argc != 3) {
+  //  fprintf(stderr,"ERROR: argc = %d;\n",argc);
+  //  usage(argv[0],argc);
+  //}
+
+  //ra_ab = atof(argv[1]);
+  //dec_ab = atof(argv[2]);
+  //fprintf(stdout, "Input ra: %11.5f dec: %11.5f\n", ra_ab, dec_ab);
+  //tess_stars2px(ra_ab, dec_ab);
+  //fprintf(stdout, "tess_stars2px Webassembly Ready");
+  return 0;
+}
