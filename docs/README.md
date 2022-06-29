@@ -16,6 +16,13 @@ You probably won't be able to install this branch as it is, because the package 
 * mm_to_pix
 * radec2pix
 
+## Usage
+
+```python
+TESSPoint(1, 1, 1).pix2radec(coords)
+```
+Where coords is an N x 2 array of pixel coordinates. You can get pixel coordinates for the edge easily using the `footprint` function.
+
 # TESS-Point
 High Precision TESS pointing tool.
 
