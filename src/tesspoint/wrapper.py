@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 @dataclass
-class Tyler(object):    
+class TESSpoint(object):    
     coord : Optional = None # SkyCoord?
     ra : Optional = None
     dec : Optional = None
@@ -16,10 +16,21 @@ class Tyler(object):
             self._read_name()
         elif self.filename is not None:
             self._read_csv()
+        elif self.coord is not None:
+            self._read_skycoord()
         self.validate()
     
-    def _read_coord(self):
-        raise NotImplementedError
+    def _read_skycoord(self):
+        if isinstance(self.coord, list):
+            if isinstance(self.coord[0], SkyCoord):
+                self.coord = SkyCoord(self.coord)
+            else:
+                raise ValueError("Must pass either a `astropy.coordinate.SkyCoord` object or a list of `astropy.coordinate.SkyCoord` objects to `coord`")
+        elif not isinstance(self.coord, SkyCoord):
+            raise ValueError("Must pass either a `astropy.coordinate.SkyCoord` object or a list of `astropy.coordinate.SkyCoord` objects to `coord`")
+        if len(self.coord.shape) == 0:
+            self.coord = SkyCoord([self.coord])
+        self.ra, self.dec =  self.coord.ra.deg, self.coord.dec.deg
     
     def _read_name(self):
         if isinstance(self.targetname, str):
@@ -52,9 +63,11 @@ class Tyler(object):
         if isnone.all():
             raise ValueError(f"Must pass either RA and Dec, Column and Row, a target name, or a filename.")
 
-        # Passed in radec or pixels
-        valid = (np.atleast_1d(np.where(isnone)[0] == [0, 1]).all() | np.atleast_1d(np.where(isnone)[0] == [2, 3]).all())
-        if not valid:
+        if np.atleast_1d(np.where(~isnone)[0] == [0, 1]).all():
+            self.coord_type = 'radec'
+        elif np.atleast_1d(np.where(~isnone)[0] == [2, 3]).all():
+            self.coord_type = 'pixels'
+        else:
             raise ValueError("Must pass either RA and Dec, or Column and Row.")
 
         # Correct length
@@ -62,10 +75,28 @@ class Tyler(object):
         if not valid_lengths:
             raise ValueError("Must pass arrays of the same length.")
         [setattr(self, attr, np.atleast_1d(getattr(self, attr))) for attr in attrs[np.where(~isnone)]]
-                                
-    def __repr__(self):
-        return 'Tyler'
+        self.nvals = len(np.atleast_1d(getattr(self, attrs[np.where(~isnone)[0][0]])))
+             
+    def __len__(self):
+        return self.nvals
     
+    def __repr__(self):
+        if self.coord_type == 'pixels':
+            return f'TESSpoint ({self.nvals} Row/Column pairs)'
+        elif self.coord_type == 'radec':
+            return f'TESSpoint ({self.nvals} RA/Dec pairs)'
+        else:
+            return 'TESSpoint'
+        
+    def __getitem__(self, idx):
+        if self.coord_type == 'radec':
+            return TESSpoint(ra=self.ra[idx], dec=self.dec[idx])
+        elif self.coord_type == 'pixels':
+            return TESSpoint(row=self.row[idx], column=self.column[idx])
+        else:
+            raise ValueError('No `coord_type` set.')
+        
+            
     def to_RADec(self, sector:Optional[List] = None, camera:Optional[List] = None, ccd:Optional[List] = None):
         raise NotImplementedError
         
@@ -75,6 +106,10 @@ class Tyler(object):
         raise NotImplementedError
         #return df # with dates?
         
-    def to_ObservabilityList(self, cycles):  
+    def ObservabilityMask(self, sectors:Optional[List] = None, cycle:Optional[List] = None):  
         raise NotImplementedError
-        #return df
+        #return np.ndarray of bools
+        
+    def NumberOfObservations(self, sectors:Optional[List] = None, cycle:Optional[List] = None):  
+        raise NotImplementedError
+        #return np.ndarray of ints
