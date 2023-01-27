@@ -21,7 +21,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Proxy Support added by Dishendra Mishra
  Deprecation warnings correctsion by Ethan Kruse
 
-VERSION: 0.7.1
+VERSION: 0.8.0
 
 WHAT'S NEW:
     -Deprecation Warning Corrections
