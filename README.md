@@ -40,7 +40,7 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 
 ### WHAT'S NEW:
 - Year 6 pointings for Sectors 70-83 now available.
-- 
+
 ### VERSION: 0.7.1
 
 ### WHAT'S NEW:
