@@ -7,7 +7,7 @@ setuptools.setup(
     name="tess-point",
     version="0.8.0",
     author="Christopher J. Burke",
-    author_email="cjburke@mit.edu",
+    author_email="tesshelp@bigbang.gsfc.nasa.gov",
     description="Determine pixel coordinates for TESS targets",
     long_description=long_description,
     long_description_content_type="text/markdown",
