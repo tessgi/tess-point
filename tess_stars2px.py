@@ -22,6 +22,11 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Deprecation warnings correctsion by Ethan Kruse
  Updates by Tyler Pritchard, Christina Hedges
 
+VERSION: 0.8.1
+
+WHAT'S NEW:
+- Year 7 pointings for Sectors 84-96 now available.
+
 VERSION: 0.8.0
 
 WHAT'S NEW:
