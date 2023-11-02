@@ -22,6 +22,11 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Deprecation warnings correctsion by Ethan Kruse
  Updates by Tyler Pritchard, Christina Hedges
 
+VERSION: 0.8.1
+
+WHAT'S NEW:
+- Year 7 pointings for Sectors 84-96 now available.
+
 VERSION: 0.8.0
 
 WHAT'S NEW:
@@ -789,7 +794,7 @@ class TESS_Spacecraft_Pointing_Data:
     #Hard coded spacecraft pointings by Sector
     # When adding sectors the arg2 needs to end +1 from sector
     #  due to the np.arange function ending at arg2-1
-    sectors = np.arange(1,84, dtype=int)
+    sectors = np.arange(1,97, dtype=int)
 
     # Arrays are broken up into the following sectors:
     # Line 1: Sectors 1-5 Start Year 1
@@ -814,6 +819,10 @@ class TESS_Spacecraft_Pointing_Data:
     # Line 20: S 73-76
     # Line 21: S 77-80
     # Line 22: S 81-83 END Year 6
+    # Line 23: S 84-87 START Year 7
+    # Line 24: S 88-90 
+    # Line 25: S 91-93
+    # Line 26: S 94-96 END Year 7
     ### NOTE IF you add Sectors be sure to update the allowed range
     ### for sectors in argparse arguments!!!
     ras = np.array([352.6844, 16.5571, 36.3138, 55.0070, 73.5382,\
@@ -837,7 +846,11 @@ class TESS_Spacecraft_Pointing_Data:
                     24.0414,  77.3449,  133.7631, \
                     80.6709,  261.2194, 254.9290, 253.5335, \
                     255.8590, 260.4232, 266.0595, 275.6978, \
-                    292.5709, 309.1299, 325.8933], dtype=float)
+                    292.5709, 309.1299, 325.8933, \
+                    343.8717, 5.8776, 42.6741, 97.9629, \
+                    116.8315, 135.8409, 155.0705, \
+                    227.0409, 311.9633, 260.5165, \
+                    323.4700, 355.7011, 16.7112], dtype=float)
             
     decs = np.array([-64.8531,-54.0160,-44.2590,-36.6420,-31.9349,\
                     -30.5839,-32.6344,-37.7370,-45.3044,\
@@ -860,7 +873,11 @@ class TESS_Spacecraft_Pointing_Data:
                     9.2629,  22.2220, 16.6536, \
                     78.8333, 72.3020, 69.9395, 66.8396, \
                     63.8557, 61.5745, 60.3042, 32.2323, \
-                    34.6859, 39.7760, 47.1247], dtype=float)
+                    34.6859, 39.7760, 47.1247, \
+                    56.2316, 66.3525, 75.8930, -32.3927, \
+                    -35.7542, -42.4981, -51.7243, \
+                    -16.8742, -17.1415, -78.8295, \
+                    -74.8966, -65.7252, -55.9356], dtype=float)
             
     rolls = np.array([222.1532,220.4335,213.0384,202.8302,191.0517,\
                       178.6367,166.4476,155.3091,145.9163,\
@@ -877,13 +894,17 @@ class TESS_Spacecraft_Pointing_Data:
                       317.4166,321.3516,329.7340,339.8650,\
                       343.1429,  3.6838, 13.4565, 24.5369,\
                       36.2524, 44.0100, 45.3615, 26.5121,\
-                      337.3244,162.2198,151.5884,142.7405,\
-                      137.2810,140.7443,173.9147,217.4678,\
-                      226.0975,222.7721,\
+                      337.3244, 162.2198,151.5884,142.7405,\
+                      137.2810, 140.7443,173.9147,217.4678,\
+                      226.0975, 222.7721,\
                       291.2985,274.9979,254.0304,\
                       8.0330,213.9191,247.4882,276.6424,\
                       302.3416,325.7085,347.5089,5.4938,\
-                      17.1317,27.7999,37.0453], dtype=float)    
+                      17.1317,27.7999,37.0453, \
+                      43.9159, 45.8046, 32.5811, 175.9167, \
+                      163.0201, 151.2486, 141.9459, \
+                      254.2704, 285.4229, 174.8522, \
+                      215.8459, 225.9414, 223.7615], dtype=float)    
 
     midtimes = np.array([ 2458339.652778, 2458368.593750, 2458396.659722, 2458424.548611, 2458451.548611, \
                          2458478.104167, 2458504.697917, 2458530.256944, 2458556.722222, \
@@ -906,7 +927,11 @@ class TESS_Spacecraft_Pointing_Data:
                          2460220.5, 2460246.5, 2460272.5,\
                          2460299 , 2460326 , 2460353 , 2460381 ,\
                          2460409.5, 2460437.5, 2460465.5, 2460493 ,\
-                         2460519.5, 2460545.5, 2460571.5], dtype=float)
+                         2460519.5, 2460545.5, 2460571.5, \
+                         2460597. , 2460622.5, 2460649. , 2460676. , \
+                         2460703.5, 2460732. , 2460760.5, \
+                         2460788.5, 2460816. , 2460842.5, \
+                         2460868.5, 2460894.5, 2460920.5], dtype=float)
 
 
     camSeps = np.array([36.0, 12.0, 12.0, 36.0], dtype=float)
@@ -1243,7 +1268,7 @@ if __name__ == '__main__':
                         help="Filename for input Target TIC [int]; RA[deg]; Dec[dec]; in white space delimited text file Column 1, 2, and 3 respectively")
     parser.add_argument("-o", "--outputFile", type=argparse.FileType('w'), \
                         help="Optional filename for output.  Default is output to stdout ")
-    parser.add_argument("-s", "--sector", type=int, choices=range(1,84),\
+    parser.add_argument("-s", "--sector", type=int, choices=range(1,97),\
                         help="Search a single sector Number [int]")
     parser.add_argument("-x", "--combinedFits", action='store_true', \
                         help="Output detector pixel coordinates for the 'Big' multi-detector combined fits file format")
