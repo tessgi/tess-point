@@ -25,11 +25,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
 VERSION: 0.8.1
 
 WHAT'S NEW:
-- Year 7 pointings for Sectors 84-96 now available.
-
-VERSION: 0.8.0
-
-WHAT'S NEW:
+    -Year 7 pointings for Sectors 84-96 now available.
     -Year 6 pointings (Sectors 70-83) now available
     -Deprecation Warning Corrections
     -Year 5 pointings (Sectors 56-69) now available
