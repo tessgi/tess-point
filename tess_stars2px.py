@@ -24,7 +24,6 @@ AUTHORS: Original programming in C and focal plane geometry solutions
 VERSION: 0.9.2
 
 WHAT'S NEW:
-    -Year 9 pointings for Sectors 108-121 now available
     -Year 8 pointings for Sectors 97-107 now available
     -Year 7 pointings for Sectors 84-96 now available
     -Year 6 pointings for Sectors 70-83 now available
@@ -148,7 +147,7 @@ except ImportError:  # Python 2.x
 import scipy.optimize as opt
 import base64
 
-max_sector = 121
+max_sector = 107
 
 
 class Levine_FPG:
@@ -961,20 +960,6 @@ class TESS_Spacecraft_Pointing_Data:
             2.5764,
             25.0148,
             45.8709,
-            66.2663,
-            86.382,	
-            106.0743,
-            125.4703,
-            145.1712,
-            166.4824,
-            192.2167,
-            219.6384,
-            288.1479,
-            251.5614,
-            269.0677,
-            274.188,
-            278.1539,
-            281.2282,
         ],
         dtype=float,
     )
@@ -1088,20 +1073,6 @@ class TESS_Spacecraft_Pointing_Data:
             -50.5513,
             -40.1221,
             -31.2349,
-            -25.1811,
-            -22.6679,
-            -23.7944,
-            -28.2718,
-            -35.6981,
-            -45.527,
-            -56.6197,
-            -16.0606,
-            -23.3419,
-            32.2829,
-            30.5688,
-            61.9047,
-            62.9604,
-            64.6669,
         ],
         dtype=float,
     )
@@ -1215,20 +1186,6 @@ class TESS_Spacecraft_Pointing_Data:
             282.7413,
             279.1045,
             271.3363,
-            261.1568,
-            249.8954,
-            238.6947,
-            228.4036,
-            219.7678,
-            213.9682,
-            213.7675,
-            251.3437,
-            276.7904,
-            347.6386,
-            359.3655,
-            19.4458,
-            40.3192,
-            62.6836,
         ],
         dtype=float,
     )
@@ -1342,20 +1299,6 @@ class TESS_Spacecraft_Pointing_Data:
             2461218.5,
             2461247.0,
             2461276.0,
-            2461304.5, 
-            2461331.5, 
-            2461357.5, 
-            2461383.5, 
-            2461409.5, 
-            2461436. ,
-            2461464. , 
-            2461493. , 
-            2461521.5, 
-            2461549.5, 
-            2461576.5, 
-            2461602.5,
-            2461628. , 
-            2461654. ,
         ],
         dtype=float,
     )
