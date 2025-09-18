@@ -24,6 +24,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
 VERSION: 0.9.2
 
 WHAT'S NEW:
+    -Year 9 pointings for Sectors 109-121 now available
     -Year 8 pointings for Sectors 97-107 now available
     -Year 7 pointings for Sectors 84-96 now available
     -Year 6 pointings for Sectors 70-83 now available
@@ -147,7 +148,7 @@ except ImportError:  # Python 2.x
 import scipy.optimize as opt
 import base64
 
-max_sector = 107
+max_sector = 121
 
 
 class Levine_FPG:
@@ -817,38 +818,6 @@ class TESS_Spacecraft_Pointing_Data:
     #  due to the np.arange function ending at arg2-1
     sectors = np.arange(1, max_sector + 1, dtype=int)
 
-    # Arrays are broken up into the following sectors:
-    # Line 1: Sectors 1-5 Start Year 1
-    # Line 2: Secotrs 6-9
-    # Line 3: Sectors 10-13 End Year 1
-    # Line 4: Sectors 14-17 Start Year 2
-    # Line 5: Sectors 18-22
-    # Line 6: Sectors 23-26 End Year 2
-    # Line 7: Sectors 27-30 Star Year 3
-    # Line 8: Sectors 31-34
-    # Line 9: Sectors 35-38
-    # Line 10: Sectors 39 End Year 3
-    # Line 11: Sectors 40-43 Star Year 4
-    # Line 12: S 44-47
-    # Line 13: S 48-51
-    # Line 14: S 52-55 END YEAR 4
-    # Line 15: S 56-59 START YEAR 5
-    # Line 16: S 60-63
-    # Line 17: S 64-67
-    # Line 18: S 68-69 END Year 5
-    # Line 19: S 70-72 START Year 6
-    # Line 20: S 73-76
-    # Line 21: S 77-80
-    # Line 22: S 81-83 END Year 6
-    # Line 23: S 84-87 START Year 7
-    # Line 24: S 88-90
-    # Line 25: S 91-93
-    # Line 26: S 94-96 END Year 7
-    # Line 27: S 97-99 START Year 8
-    # Line 28: S 100-102
-    # Line 29: S 103-105
-    # Line 30: S 106-107 END Year 8
-
     ### NOTE IF you add Sectors be sure to update the allowed range
     ### for sectors in argparse arguments!!!
     ras = np.array(
@@ -960,6 +929,20 @@ class TESS_Spacecraft_Pointing_Data:
             2.5764,
             25.0148,
             45.8709,
+            66.2663,
+            86.382,	
+            106.0743,
+            125.4703,
+            145.1712,
+            166.4824,
+            192.2167,
+            219.6384,
+            288.1479,
+            251.5614,
+            269.0677,
+            274.188,
+            278.1539,
+            281.2282,
         ],
         dtype=float,
     )
@@ -1073,6 +1056,20 @@ class TESS_Spacecraft_Pointing_Data:
             -50.5513,
             -40.1221,
             -31.2349,
+            -25.1811,
+            -22.6679,
+            -23.7944,
+            -28.2718,
+            -35.6981,
+            -45.527,
+            -56.6197,
+            -16.0606,
+            -23.3419,
+            32.2829,
+            30.5688,
+            61.9047,
+            62.9604,
+            64.6669,
         ],
         dtype=float,
     )
@@ -1186,6 +1183,20 @@ class TESS_Spacecraft_Pointing_Data:
             282.7413,
             279.1045,
             271.3363,
+            261.1568,
+            249.8954,
+            238.6947,
+            228.4036,
+            219.7678,
+            213.9682,
+            213.7675,
+            251.3437,
+            276.7904,
+            347.6386,
+            359.3655,
+            19.4458,
+            40.3192,
+            62.6836,
         ],
         dtype=float,
     )
@@ -1299,6 +1310,20 @@ class TESS_Spacecraft_Pointing_Data:
             2461218.5,
             2461247.0,
             2461276.0,
+            2461304.5, 
+            2461331.5, 
+            2461357.5, 
+            2461383.5, 
+            2461409.5, 
+            2461436. ,
+            2461464. , 
+            2461493. , 
+            2461521.5, 
+            2461549.5, 
+            2461576.5, 
+            2461602.5,
+            2461628. , 
+            2461654. ,
         ],
         dtype=float,
     )
