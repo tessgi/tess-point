@@ -44,9 +44,9 @@ if __name__ == '__main__':
           outCam[i], outCcd[i], outColPix[i], outRowPix[i]))
     
     print('Also accepts multiple targets')
-    ra = np.array([219.90085,10.897379], dtype=np.float)
-    dec = np.array([-60.835619,-17.986606], dtype=np.float)
-    ticid = np.array([0,1], dtype=np.int)
+    ra = np.array([219.90085,10.897379], dtype=np.float64)
+    dec = np.array([-60.835619,-17.986606], dtype=np.float64)
+    ticid = np.array([0,1], dtype=np.int64)
     outID, outEclipLong, outEclipLat, outSec, outCam, outCcd, \
             outColPix, outRowPix, scinfo = tess_stars2px_function_entry(
                     ticid, ra, dec, scInfo=scinfo)
