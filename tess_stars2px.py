@@ -2,7 +2,7 @@
 tess_stars2px.py - High precision TESS pointing tool.
 Convert target coordinates given in Right Ascension and Declination to
 TESS detector pixel coordinates for the prime mission TESS observing
-sectors (Year 1 & 2), Extendend mission Years 3-5.
+sectors (Year 1 & 2), Extendend mission Years 3+.
 Can also query MAST to obtain detector
 pixel coordinates for a star by TIC ID or common star name (must be online for this option).
 
@@ -19,11 +19,12 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Sesame queries by Brett Morris (UW)
  Proxy Support added by Dishendra Mishra
  Deprecation warnings correctsion by Ethan Kruse
- Updates by Tyler Pritchard, Christina Hedges
+ Updates by Tyler Pritchard, Christina Hedges, Nicole Schanche, Rebekah Hounsell
 
-VERSION: 0.9.2
+VERSION: 0.9.4
 
 WHAT'S NEW:
+    -3I/ATLAS special pointing (Sector 1751) now available
     -Year 9 pointings for Sectors 109-121 now available
     -Year 8 pointings for Sectors 97-107 now available
     -Year 7 pointings for Sectors 84-96 now available
@@ -38,7 +39,7 @@ WHAT'S NEW:
          does not affect users that did not use --aberrate or -aberrate with -s
 
 NOTES:
-    -Pointing table is for TESS Year 1 - 5 (Sectors 1-69)
+    -Pointing table is for TESS Year 1 - 9 (Sectors 1-121)
     -Pointing table is unofficial, and the pointings may change.
     -See https://tess.mit.edu/observations/ for latest TESS pointing table
     -Pointing prediction algorithm is similar to internally at MIT for
@@ -148,6 +149,7 @@ except ImportError:  # Python 2.x
 import scipy.optimize as opt
 import base64
 
+# Latest 'regular' sector that has TESS pointing information
 max_sector = 121
 
 
@@ -817,6 +819,9 @@ class TESS_Spacecraft_Pointing_Data:
     # When adding sectors the arg2 needs to end +1 from sector
     #  due to the np.arange function ending at arg2-1
     sectors = np.arange(1, max_sector + 1, dtype=int)
+    # Unusual 'sectors', such as the 3I/Atlas pointing,
+    # begin incrementing from 1751 and can be placed at the end. 
+    sectors = np.append(sectors, 1751) # 3I/Atlas "sector"
 
     ### NOTE IF you add Sectors be sure to update the allowed range
     ### for sectors in argparse arguments!!!
@@ -920,7 +925,7 @@ class TESS_Spacecraft_Pointing_Data:
             16.7112,
             41.6581,
             80.1656,
-            157.205,
+            157.205, # S99 will be in 2 parts due to 3I/Atlas repoint
             180.5352,
             209.0229,
             249.1776,
@@ -943,6 +948,7 @@ class TESS_Spacecraft_Pointing_Data:
             274.188,
             278.1539,
             281.2282,
+            109.4916, # 3I/Atlas
         ],
         dtype=float,
     )
@@ -1047,7 +1053,7 @@ class TESS_Spacecraft_Pointing_Data:
             -55.9356,
             -41.8452,
             -31.0553,
-            -41.1581,
+            -41.1581, # S99 will be in 2 parts due to 3I/Atlas repoint
             -51.9138,
             -62.0323,
             -68.7051,
@@ -1070,6 +1076,7 @@ class TESS_Spacecraft_Pointing_Data:
             61.9047,
             62.9604,
             64.6669,
+            21.8424, # 3I/Atlas
         ],
         dtype=float,
     )
@@ -1174,7 +1181,7 @@ class TESS_Spacecraft_Pointing_Data:
             223.7615,
             210.3682,
             186.6394,
-            215.9362,
+            215.9362, # S99 will be in 2 parts due to 3I/Atlas repoint
             212.8651,
             217.7538,
             236.0704,
@@ -1197,6 +1204,7 @@ class TESS_Spacecraft_Pointing_Data:
             19.4458,
             40.3192,
             62.6836,
+            84.3356, # 3I/Atlas
         ],
         dtype=float,
     )
@@ -1301,7 +1309,7 @@ class TESS_Spacecraft_Pointing_Data:
             2460920.5,
             2460961.0,
             2461017.0,
-            2461059.5,
+            2461059.5, # S99 will be in 2 parts due to 3I/Atlas repoint
             2461087.0,
             2461113.5,
             2461139.0,
@@ -1324,6 +1332,7 @@ class TESS_Spacecraft_Pointing_Data:
             2461602.5,
             2461628. , 
             2461654. ,
+            2461058.5, # 3I/Atlas
         ],
         dtype=float,
     )

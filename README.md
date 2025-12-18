@@ -36,29 +36,25 @@ Alternatively, the python module is a single file, tess_stars2px.py, so one can 
 ### AUTHORS
 Original programming in C and focal plane geometry solutions by Alan Levine (MIT).  This python translation by Christopher J. Burke (MIT).  Testing and focal plane geometry refinements by Michael Fausnaugh & Roland Vanderspek (MIT).  Testing by Thomas Barclay (NASA Goddard) and Jessica Roberts (Univ. of Colorado).  By target name resolving implemented by Brett Morris (UW).  Python help from Brigitta Sipocz and Martin Owens.  Bug reports by Adina Feinstein (Univ. Chicago). Proxy implementation by Dishendra Mishra. Depcrecatin fixes by Ethan Kruse.
 
-### VERSION: 0.9.3
 
-### WHAT'S NEW:
+### CHANGELOG
+
+#### VERSION: 0.9.4
+- Added change of pointing during Sector 99 to observe 3I/ATLAS
+
+#### VERSION: 0.9.3
 - Year 9 pointings for Sectors 108-121 now available.
 
-### VERSION: 0.9
-
-### WHAT'S NEW:
+#### VERSION: 0.9
 - Year 8 pointings for Sectors 97-107 now available.
 
-### VERSION: 0.8.1
-
-### WHAT'S NEW:
+#### VERSION: 0.8.1
 - Year 7 pointings for Sectors 84-96 now available.
 
-### VERSION: 0.8
-
-### WHAT'S NEW:
+#### VERSION: 0.8
 - Year 6 pointings for Sectors 70-83 now available.
 
-### VERSION: 0.7.1
-
-### WHAT'S NEW:
+#### VERSION: 0.7.1
 - Year 5 pointings for Sectors 56-69 now available.
 - Bug correction for aberration. Only impacts if you were using aberration flag WITHOUT the single sector. In other words, the bug does not impact users that did not use aberrate flag or aberrate flag with s flag
 - Sector 46 field update 2021 October
@@ -72,7 +68,7 @@ A citation for tess-point is available through the [Astrophysics Source Code Lib
 Burke, C. J., Levine, A., Fausnaugh, M., Vanderspek, R., Barclay, T., Libby-Roberts, J. E., Morris, B., Sipocz, B., Owens, M., Feinstein, A. D., Camacho, J., 2020, 0.4.1, Astrophysics Source Code Library, record ascl:2003:001
 
 ### NOTES
-- Pointing table is for TESS Year 1 - 6 (Sectors 1-83) .
+- Pointing table is for TESS Year 1 - 9 (Sectors 1-121) .
 
 - Testing shows pointing with this tool should be accurate to better than a pixel, but without including aberration effects, ones algorithm adopted for centroiding highly assymmetric point-spread function at edge of camera, and by-eye source location, a 2 pixel accuracy estimate is warranted. Use aberration option for better accuracy
 
