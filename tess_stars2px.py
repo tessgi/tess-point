@@ -1767,7 +1767,7 @@ if __name__ == "__main__":
         "-s",
         "--sector",
         type=int,
-        choices=range(1, max_sector + 1),
+        choices=np.append( np.arange(1, max_sector + 1), 1751),
         help="Search a single sector Number [int]",
     )
     parser.add_argument(
