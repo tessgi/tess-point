@@ -38,6 +38,8 @@ Original programming in C and focal plane geometry solutions by Alan Levine (MIT
 
 
 ### CHANGELOG
+#### VERSION: 0.9.5
+- Year 10 pointings for Sectors 122-134 now available.  
 
 #### VERSION: 0.9.4
 - Added change of pointing during Sector 99 to observe 3I/ATLAS
