@@ -24,7 +24,7 @@ AUTHORS: Original programming in C and focal plane geometry solutions
 VERSION: 0.9.5
 
 WHAT'S NEW:
-    --Year 9 pointings for Sectors 122-134 now available
+    -Year 10 pointings for Sectors 122-134 now available
     -3I/ATLAS special pointing (Sector 1751) now available
     -Year 9 pointings for Sectors 109-121 now available
     -Year 8 pointings for Sectors 97-107 now available
