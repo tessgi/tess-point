@@ -21,9 +21,10 @@ AUTHORS: Original programming in C and focal plane geometry solutions
  Deprecation warnings correctsion by Ethan Kruse
  Updates by Tyler Pritchard, Christina Hedges, Nicole Schanche, Rebekah Hounsell
 
-VERSION: 0.9.4
+VERSION: 0.9.5
 
 WHAT'S NEW:
+    -Year 10 pointings for Sectors 122-134 now available
     -3I/ATLAS special pointing (Sector 1751) now available
     -Year 9 pointings for Sectors 109-121 now available
     -Year 8 pointings for Sectors 97-107 now available
@@ -39,7 +40,7 @@ WHAT'S NEW:
          does not affect users that did not use --aberrate or -aberrate with -s
 
 NOTES:
-    -Pointing table is for TESS Year 1 - 9 (Sectors 1-121)
+    -Pointing table is for TESS Year 1 - 10 (Sectors 1-134)
     -Pointing table is unofficial, and the pointings may change.
     -See https://tess.mit.edu/observations/ for latest TESS pointing table
     -Pointing prediction algorithm is similar to internally at MIT for
@@ -150,7 +151,7 @@ import scipy.optimize as opt
 import base64
 
 # Latest 'regular' sector that has TESS pointing information
-max_sector = 121
+max_sector = 134
 
 
 class Levine_FPG:
@@ -934,20 +935,33 @@ class TESS_Spacecraft_Pointing_Data:
             2.5764,
             25.0148,
             45.8709,
-            66.2663,
-            86.382,	
-            106.0743,
-            125.4703,
-            145.1712,
-            166.4824,
-            192.2167,
-            219.6384,
-            288.1479,
-            251.5614,
-            269.0677,
-            274.188,
-            278.1539,
-            281.2282,
+            66.268,
+            86.3794,
+            106.0674,
+            125.4614,
+            145.1635,
+            166.4787,
+            192.219,
+            219.6452,
+            288.1559,
+            251.5622,
+            269.0625,
+            274.1857,
+            278.1519,
+            281.2273,
+            282.6496, 
+            281.2507, 
+            276.0697, 
+            268.2797, 
+            261.4952, 
+            257.9503,
+            257.4798, 
+            259.3168, 
+            241.7256, 
+            259.7351, 
+            278.2372, 
+            236.4841,
+            314.208,
             109.4916, # 3I/Atlas
         ],
         dtype=float,
@@ -1062,20 +1076,33 @@ class TESS_Spacecraft_Pointing_Data:
             -50.5513,
             -40.1221,
             -31.2349,
-            -25.1811,
-            -22.6679,
-            -23.7944,
-            -28.2718,
-            -35.6981,
-            -45.527,
-            -56.6197,
-            -16.0606,
-            -23.3419,
-            32.2829,
-            30.5688,
-            61.9047,
-            62.9604,
-            64.6669,
+            -25.1807,
+            -22.668,
+            -23.7934,
+            -28.2691,
+            -35.6948,
+            -45.5253,
+            -56.6205,
+            -16.0628,
+            -23.341,
+            32.2827,
+            30.5689,
+            61.9043,
+            62.9596,
+            64.6662,
+            66.8827,
+            69.249,
+            71.0637,
+            71.5268,
+            70.4883,
+            68.5495,
+            66.3336,
+            64.2574,
+            34.5695,
+            31.0995,
+            30.9091,
+            -18.8987,
+            -16.8205,
             21.8424, # 3I/Atlas
         ],
         dtype=float,
@@ -1190,20 +1217,33 @@ class TESS_Spacecraft_Pointing_Data:
             282.7413,
             279.1045,
             271.3363,
-            261.1568,
-            249.8954,
-            238.6947,
-            228.4036,
-            219.7678,
-            213.9682,
-            213.7675,
-            251.3437,
-            276.7904,
-            347.6386,
-            359.3655,
-            19.4458,
-            40.3192,
-            62.6836,
+            261.1558,
+            249.8968,
+            238.6986,
+            228.408,
+            219.7706,
+            213.9688,
+            213.7678,
+            251.3455,
+            276.7935,
+            347.6392,
+            359.3619,
+            19.4347,
+            40.3075,
+            62.6748,
+            87.8131,
+            117.0835,
+            151.1359,
+            187.8553,
+            222.4272,
+            252.2887,
+            278.3563,
+            302.2054,
+            341.3037,
+            353.0723,
+            5.56,
+            76.9858,
+            105.192,
             84.3356, # 3I/Atlas
         ],
         dtype=float,
@@ -1332,6 +1372,19 @@ class TESS_Spacecraft_Pointing_Data:
             2461602.5,
             2461628. , 
             2461654. ,
+            2461681.5
+            2461710.0,
+            2461739.0,
+            2461767.5,
+            2461795.0,
+            2461821.5,
+            2461847.5,
+            2461873.5,
+            2461900.0,
+            2461927.5,
+            2461956.0,
+            2461985.0,
+            2462013.5,
             2461058.5, # 3I/Atlas
         ],
         dtype=float,
