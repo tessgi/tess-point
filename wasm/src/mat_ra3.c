@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "vec.h"
 #include "mat_ra.h"
 
@@ -433,12 +434,19 @@ double **matrix(int r, int c)
 {
     int i;
     double **m;
-    
-    if (!(m=(double **) malloc((unsigned)(r)*sizeof(double*))))
+
+    if (r <= 0 || c <= 0 ||
+	(size_t)r > SIZE_MAX/sizeof(double*) ||
+	(size_t)c > SIZE_MAX/sizeof(double)) {
+	fprintf(stderr, "allocation failure in matrix\n");
+	return(NULL);
+    }
+
+    if (!(m=(double **) malloc((size_t)(r)*sizeof(double*))))
 	fprintf(stderr, "allocation failure in matrix\n");
     
     for(i=0;i<r;i++) {
-      if(!(m[i]=(double *) malloc((unsigned)(c)*sizeof(double))))
+      if(!(m[i]=(double *) malloc((size_t)(c)*sizeof(double))))
 	fprintf(stderr, "allocation failure in matrix\n");
     }
     return(m);
